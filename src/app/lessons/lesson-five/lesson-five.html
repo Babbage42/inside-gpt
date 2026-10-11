@@ -1,0 +1,225 @@
+@if (!started()) {
+  <section class="intro">
+    <span class="eyebrow">Leçon 5 · Construire et interroger un petit modèle</span>
+    <h1>Comment des réglages sans sens initial deviennent-ils une prédiction utile ?</h1>
+    <p>Une liste de phrases, une combinaison gardée à part, et un modèle dont nous pouvons inspecter chaque opération. Nous allons construire la prédiction, déplacer un réglage à la main, puis comprendre comment l’apprentissage automatise cette correction.</p>
+    <p>Pas besoin de connaître les embeddings ou les matrices. Nous introduirons ces noms avec les opérations qu’ils désignent. Ce premier modèle n’est pas un LLM complet : il sert à isoler le mécanisme d’apprentissage.</p>
+    <button class="primary" (click)="started.set(true)">Ouvrir l’enquête →</button>
+  </section>
+} @else {
+  <header>
+    @if (migrated) {<p class="destination">La structure de cette leçon a changé. La lecture reprend au début ; vos époques d’entraînement et les leçons terminées ont été conservées. Le sommaire permet de rejoindre une explication directement.</p>}
+    <span class="eyebrow">Leçon 5 · {{ step() + 1 }} / {{ steps.length }}</span>
+    <h1>{{ steps[step()] }}</h1>
+    <progress [value]="step() + 1" [max]="steps.length" aria-label="Progression de la leçon"></progress>
+    <p class="resume">Lecture, réponses et entraînement sauvegardés dans ce navigateur. Les calculs introductifs restent à l’état initial.</p>
+  </header>
+  <div class="workbench">
+    <aside class="notebook">
+      <h2>Le fil rouge</h2>
+      <p><b>Pour apprendre</b><br>chien · fatigué → <b>dort</b></p>
+      <p><b>Pour tester ensuite</b><br>chat · fatigué → <b>?</b></p>
+      <details [open]="step() === 0"><summary>Les 7 exercices corrigés</summary>
+        @for (example of corpus; track $index) {<p class="sample" [class.focus]="$index === 1">{{ example.tokens.join(' · ') }} → <b>{{ example.target }}</b></p>}
+      </details>
+      <p class="legend"><b>Données</b> : les mots et réponses du corpus.<br><b>Choix de conception</b> : deux nombres par mot, une moyenne, trois sorties.<br><b>Paramètres</b> : nombres modifiés par l’apprentissage.<br><b>Résultats</b> : nombres calculés avec ces paramètres.</p>
+      <details><summary>Retrouver une explication</summary><nav aria-label="Chapitres de la leçon 5">
+        @for (title of steps; track $index) {<button [attr.aria-current]="step() === $index ? 'step' : null" (click)="goTo($index)">{{ $index + 1 }}. {{ title }}</button>}
+      </nav></details>
+    </aside>
+    <main class="chapter" id="lesson-five-chapter" tabindex="-1">
+      @switch (step()) {
+        @case (0) {
+          <p class="bridge">Dans la leçon 4, on comptait des successions observées. Nouvelle question : comment réutiliser ce qui a été appris sur un mot dans une association jamais vue ?</p>
+          <h2>Compléter « chat fatigué … » sans apprendre cette phrase par cœur.</h2>
+          <p>Lisez les sept lignes du corpus. Dans ce petit monde, « fatigué » accompagne « dort » avec le chien et la souris. Le chat apparaît aussi, mais jamais avec « fatigué ». Nous pouvons donc attendre « dort » pour la combinaison nouvelle. C’est une régularité de <em>ces données</em>, pas une loi : dans la vraie vie, un chat fatigué pourrait aussi manger.</p>
+          <h3>Ce qui entre et ce qui reste caché</h3>
+          <p>Pour l’exercice « chien fatigué → dort », le modèle reçoit uniquement les deux mots de gauche. Il produit trois probabilités. Ensuite seulement, le programme d’entraînement consulte « dort » pour évaluer et corriger cette prédiction. Une <b>cible</b> est simplement cette réponse connue.</p>
+          <div class="flow"><span>Contexte<br><b>chien · fatigué</b></span><span>Modèle<br><b>réglages à apprendre</b></span><span>Sortie<br><b>P(dort), P(joue), P(mange)</b></span></div>
+          <p>Nous utilisons des fragments plutôt que des phrases grammaticales pour isoler le problème. Ici, un mot vaut un <b>token</b>, une unité traitée par le modèle. Un vrai tokenizer peut découper un mot en plusieurs morceaux. Notre modèle ne peut proposer que trois réponses ; un LLM distribue sa probabilité sur tout son vocabulaire.</p>
+          <h3>Pourquoi ne pas chercher simplement la phrase dans une liste ?</h3>
+          <p>Une table « paire exacte → réponse » n’a aucune entrée pour « chat fatigué ». Compter seulement le dernier mot peut déjà réussir cet exemple, et serait une bonne solution ici ! Le but n’est pas de prouver qu’un réseau est nécessaire sur sept lignes, mais de comprendre une méthode entraînable qui partage des réglages entre exemples.</p>
+          <p class="destination">Il nous faut décider <em>quels réglages partager</em>. Ce choix précède l’apprentissage : les données ne dessinent pas toutes seules l’architecture.</p>
+        }
+        @case (1) {
+          <p class="bridge">Nous avons une tâche et des réponses d’entraînement. Il manque une machine réglable, dont le même mot réutilise les mêmes paramètres d’une phrase à l’autre.</p>
+          <h2>Une ligne de réglages par mot, puis une lecture commune.</h2>
+          <p>En développeur, imaginez un dictionnaire : <code>table['fatigué'] = [a, b]</code>. Les lettres a et b désignent deux nombres modifiables. Toutes les occurrences de « fatigué » lisent <em>la même ligne</em>. Si un exercice fait corriger cette ligne, les futurs contextes contenant ce mot la liront aussi.</p>
+          <h3>Pourquoi deux nombres ? Pourquoi pas directement une probabilité ?</h3>
+          <p>Nous choisissons un espace intermédiaire de deux nombres, puis trois lecteurs partagés qui calculeront les scores de « dort », « joue » et « mange ». Cela sépare la <b>représentation d’un mot</b> de sa <b>lecture pour une tâche</b>. On pourrait concevoir une autre machine avec trois scores directement associés à chaque mot ; l’embedding n’est pas un passage obligatoire pour n’importe quel modèle.</p>
+          <p>Deux est ici un choix de conception pour pouvoir dessiner et calculer à la main. Ce nombre n’est ni trouvé dans le corpus, ni le nombre de propriétés humaines du mot. Les deux cases n’ont pas été étiquetées « fatigue » et « faim ». Dans les modèles réels, on choisit une largeur bien plus grande et plusieurs transformations intermédiaires.</p>
+          <div class="equation"><code>table['fatigué'] = [{{ studyModel.embedding('fatigué')[0] | number:'1.6-6' }}, {{ studyModel.embedding('fatigué')[1] | number:'1.6-6' }}]</code><small>Paramètres initiaux réels de notre programme, affichés arrondis.</small></div>
+          <h3>D’où sortent précisément ces deux valeurs ?</h3>
+          <p>Le programme tire de petits nombres entre −0,18 et +0,18 avec un générateur pseudo-aléatoire de graine 17. La graine permet de retrouver les mêmes nombres en rechargeant. La plage et la graine sont des choix de démarrage, pas du savoir linguistique. À ce stade, cette ligne ne permet pas de « comprendre fatigué ».</p>
+          <p>Pourquoi ne pas tout mettre à zéro ? Les poids de lecture et les représentations doivent apprendre ensemble. Tous nuls, leurs gradients se multiplieraient par zéro : seuls les biais pourraient apprendre les fréquences des réponses. De petites différences initiales permettent aux autres paramètres d’évoluer.</p>
+          <p class="definition">Une liste ordonnée de nombres est un <b>vecteur</b>. La ligne de paramètres associée à un token est son <b>embedding</b>. La collection de ces lignes est la <b>table d’embeddings</b>. Ces noms décrivent la structure ; ils ne garantissent pas qu’elle a déjà appris quelque chose.</p>
+          <p class="destination">Nous avons choisi les réglages. Vérifions comment le mot sélectionne sa ligne — sans confusion entre une adresse et une valeur apprise.</p>
+        }
+        @case (2) {
+          <p class="bridge">La table existe dès l’initialisation. Le passage du texte à cette table est une sélection, pas une opération qui découvre le sens du texte.</p>
+          <h2>ID, one-hot, embedding : trois objets différents.</h2>
+          <label>Choisissez le mot à chercher <select [value]="selectedToken()" (change)="selectedToken.set($any($event.target).value)">@for (token of vocabulary; track token) {<option [value]="token">{{ token }}</option>}</select></label>
+          <p><b>1. Une adresse.</b> Nous rangeons les mots dans l’ordre de leur première apparition. L’<b>ID</b> est le numéro de ligne, en partant de zéro : « {{ selectedToken() }} » a l’ID {{ tokenId(selectedToken()) }}. Ce numéro n’exprime ni une intensité ni une ressemblance. Réordonner le dictionnaire et sa table de façon cohérente ne change pas le modèle.</p>
+          <p><b>2. Une autre écriture de cette adresse.</b> Le <b>one-hot</b> est une liste avec une case par token du vocabulaire : 1 à la place choisie, 0 ailleurs. Il contient ici 7 nombres, même si l’embedding n’en a que 2.</p>
+          <div class="equation">one-hot de « {{ selectedToken() }} » = [{{ oneHot(selectedToken()).join(', ') }}]</div>
+          <p><b>3. Utiliser ces zéros et ce un pour sélectionner la ligne.</b> Pour chaque colonne, multipliez chaque valeur par la case one-hot correspondante, puis additionnez. Voici tous les termes :</p>
+          <div class="table-scroll"><table><caption>Table initiale E : 7 lignes × 2 colonnes</caption><thead><tr><th>ID · token</th><th>Sélecteur</th><th>Terme, colonne 1</th><th>Terme, colonne 2</th></tr></thead><tbody>
+            @for (token of vocabulary; track token) {<tr [class.focus]="token === selectedToken()"><th>{{ tokenId(token) }} · {{ token }}</th><td>{{ token === selectedToken() ? 1 : 0 }}</td><td>{{ token === selectedToken() ? 1 : 0 }} × ({{ studyModel.embedding(token)[0] | number:'1.4-4' }})</td><td>{{ token === selectedToken() ? 1 : 0 }} × ({{ studyModel.embedding(token)[1] | number:'1.4-4' }})</td></tr>}
+          </tbody><tfoot><tr><th>Sommes</th><td></td><td>{{ studyModel.embedding(selectedToken())[0] | number:'1.4-4' }}</td><td>{{ studyModel.embedding(selectedToken())[1] | number:'1.4-4' }}</td></tr></tfoot></table></div>
+          <p>Toutes les autres lignes sont annulées. Le résultat est exactement <code>table[ID]</code>. Une table rectangulaire de nombres s’appelle une <b>matrice</b> ; l’écriture compacte de ce calcul est <code>one-hot × E</code> : un vecteur-ligne 1 × 7 multiplié par une matrice 7 × 2 donne 1 × 2.</p>
+          <p class="definition">Nous n’avons pas « converti les zéros et les uns en sens ». Nous avons <b>sélectionné des paramètres déjà présents</b>. Un programme effectue directement cette lecture de ligne, sans construire les zéros. L’entraînement modifiera la ligne plus tard.</p>
+          <p class="destination">La même lecture pour « chien » puis « fatigué » donne deux vecteurs. Comment en faire une entrée commune pour choisir le prochain mot ?</p>
+        }
+        @case (3) {
+          <p class="bridge">Chaque mot ne faisait que retrouver sa propre ligne. Il faut une opération qui rassemble les deux informations.</p>
+          <h2>Premier essai : donner la même place aux deux mots.</h2>
+          <p>Le contexte est la liste ordonnée reçue : position 1 = « chien », position 2 = « fatigué ». Ces positions viennent du texte, pas d’un placement sur le graphique. Elles ne sont pas les deux coordonnées d’un vecteur : chaque position possède son propre vecteur à deux coordonnées.</p>
+          <div class="flow">@for (token of trainingExample.tokens; track $index) {<span>Position {{ $index + 1 }} · {{ token }}<br><b>[{{ studyModel.embedding(token)[0] | number:'1.5-5' }}, {{ studyModel.embedding(token)[1] | number:'1.5-5' }}]</b></span>}</div>
+          <p>Nous décidons de faire une <b>moyenne coordonnée par coordonnée</b>. Pourquoi ? Elle fournit un résumé de taille fixe, même avec plus de mots, et laisse chaque mot influencer le résultat. C’est une première hypothèse de modèle, pas une formule imposée par la langue.</p>
+          @for (d of [0, 1]; track d) {<div class="equation">Contexte, coordonnée {{ d + 1 }} = ({{ study.embeddings[0][d] | number:'1.5-5' }} + {{ study.embeddings[1][d] | number:'1.5-5' }}) / 2 = <b>{{ study.context[d] | number:'1.5-5' }}</b><small>Deux mots, donc division par 2. Ce résultat est calculé ; ce n’est pas un nouveau paramètre.</small></div>}
+          <p>Nous appellerons ce résumé <b>h</b> pour ne pas réécrire « vecteur de contexte ». h₁ et h₂ sont ses deux coordonnées. Cette lettre est une abréviation, pas un concept supplémentaire.</p>
+          <p class="warning">Ce choix détruit l’ordre : « chien fatigué » et « fatigué chien » donnent exactement le même h. Il attribue aussi le même coefficient 1/2 à chaque position. Même entraîné longtemps, ce modèle ne peut pas distinguer ce que son calcul rend identique.</p>
+          <p class="destination">Un résumé n’est toujours pas une réponse. Ajoutons trois fonctions réglables qui lisent le même h, une par réponse possible.</p>
+        }
+        @case (4) {
+          <p class="bridge">Nous savons calculer h. Nous voulons trois nombres comparables : un score pour chaque réponse.</p>
+          <h2>Un neurone est ici un lecteur réglable du contexte.</h2>
+          <p>Reprenons le neurone : il multiplie chaque entrée par un poids, additionne les contributions, puis ajoute un biais. Les <b>poids</b> disent comment lire les coordonnées. Le <b>biais</b> est un décalage indépendant de l’entrée. Ce sont des paramètres comme les embeddings, pas des statistiques déjà connues.</p>
+          <p>Pour « dort », deux poids w₁ et w₂ lisent h₁ et h₂ : <b>score = h₁ × w₁ + h₂ × w₂ + biais</b>. On appelle ce score brut un <b>logit</b>. Il peut être négatif ; ce n’est pas encore une probabilité.</p>
+          <div class="choices" role="group" aria-label="Neurone à inspecter">@for (candidate of candidates; track candidate) {<button [class.selected]="selectedCandidate() === candidate" (click)="selectedCandidate.set(candidate)">{{ candidate }}</button>}</div>
+          <h3>Ouvrons le neurone « {{ selectedCandidate() }} » — état initial fixe</h3>
+          <table><thead><tr><th>Origine</th><th>Calcul</th><th>Contribution</th></tr></thead><tbody>
+            @for (d of [0, 1]; track d) {<tr><th>h{{ d + 1 }} calculé × poids {{ d + 1 }} initial</th><td>{{ study.context[d] | number:'1.6-6' }} × ({{ studyModel.outputWeights(selectedCandidate())[d] | number:'1.6-6' }})</td><td>{{ study.context[d] * studyModel.outputWeights(selectedCandidate())[d] | number:'1.6-6' }}</td></tr>}
+            <tr><th>Biais initial</th><td>Choisi nul au démarrage</td><td>0</td></tr>
+          </tbody><tfoot><tr><th>Somme = logit</th><td></td><td>{{ study.logits[selectedCandidateIndex()] | number:'1.6-6' }}</td></tr></tfoot></table>
+          <p>Les poids, eux aussi tirés au démarrage, n’ont pas été calculés à partir du mot « dort ». Nous avons affecté la première sortie à ce mot. L’erreur sur les exemples corrigés modifiera ensuite ces poids pour rendre cette sortie utile.</p>
+          <p class="definition">Le réseau n’est pas une collection de règles « si fatigué alors dort ». C’est une composition : une ligne partagée par mot, une moyenne, puis trois lecteurs partagés. <b>Pour l’instant, le modèle ne sait pas répondre.</b> Un score légèrement supérieur aux autres ne constitue pas encore une connaissance.</p>
+          <p class="destination">Comparer les scores suffit à prendre le plus grand. Mais pour mesurer à quel point le modèle se trompe, faisons-lui aussi attribuer une probabilité à chaque possibilité.</p>
+        }
+        @case (5) {
+          <p class="bridge">Trois scores sont disponibles. Nous voulons une répartition positive dont le total vaut 1, puis un nombre qui mesure l’erreur sur la cible connue.</p>
+          <h2>Probabilités d’abord, erreur ensuite : deux opérations distinctes.</h2>
+          <h3>1. Construire une répartition avec softmax</h3>
+          <p>Diviser directement les scores par leur somme ne marche pas en général : certains peuvent être négatifs. Nous utilisons l’<b>exponentielle</b>, notée exp(z) ou eᶻ : elle est toujours positive, augmente avec z, et vaut 1 quand z = 0. Ensuite, nous divisons chaque résultat par leur total. Cette recette s’appelle <b>softmax</b>.</p>
+          <table><thead><tr><th>Sortie</th><th>Score z</th><th>exp(z)</th><th>exp(z) / total</th></tr></thead><tbody>@for (candidate of candidates; track candidate; let i = $index) {<tr><th>{{ candidate }}</th><td>{{ study.logits[i] | number:'1.6-6' }}</td><td>{{ studyExponentials[i] | number:'1.6-6' }}</td><td>{{ study.probabilities[i] | number:'1.6-6' }}</td></tr>}</tbody></table>
+          <div class="equation">Total = {{ studyExponentials[0] | number:'1.6-6' }} + {{ studyExponentials[1] | number:'1.6-6' }} + {{ studyExponentials[2] | number:'1.6-6' }} = {{ studyTotal | number:'1.6-6' }}</div>
+          <p>Des scores proches donnent environ un tiers chacun. Augmenter le score de « dort » augmente sa part et réduit celle des autres. Le programme soustrait en pratique le score maximal avant l’exponentielle pour éviter les débordements : le facteur commun s’annule dans la division et les probabilités sont identiques.</p>
+          <h3>2. Évaluer la réponse avec la cible « dort »</h3>
+          <p>Maintenant seulement, nous consultons la réponse du corpus. Nous choisissons la perte <b>L = −ln P(dort)</b>. « ln » est le logarithme naturel, inverse de l’exponentielle. Sur une probabilité entre 0 et 1, il est négatif ; le signe moins rend la perte positive. Plus la probabilité correcte approche 1, plus la perte approche 0.</p>
+          <div class="flow"><span>P correcte = 0,10<br>Perte ≈ 2,303</span><span>P correcte = 0,50<br>Perte ≈ 0,693</span><span>P correcte = 0,90<br>Perte ≈ 0,105</span></div>
+          <div class="equation">Notre exemple : L = −ln({{ study.probabilities[0] | number:'1.6-6' }}) = {{ study.loss | number:'1.6-6' }}</div>
+          <p>Pourquoi cette perte plutôt que « vrai/faux » ? Elle distingue une faible probabilité correcte d’une forte probabilité correcte et varie de façon dérivable. C’est la <b>cross-entropy</b> pour une cible unique. Sur plusieurs exercices, minimiser la moyenne de ces pertes revient à augmenter la moyenne des log-probabilités des réponses observées.</p>
+          <p class="destination">Nous avons un critère : réduire L. Avant d’écrire une formule de correction, touchons un paramètre et observons ce qui arrive réellement à la perte.</p>
+        }
+        @case (6) {
+          <p class="bridge">Une valeur initiale est arbitraire. La façon de la corriger ne doit pas l’être. Mesurons l’effet d’un changement contrôlé.</p>
+          <h2>Déplacer une seule coordonnée de « fatigué ».</h2>
+          <p>Tous les autres paramètres restent figés. Nous évaluons toujours « chien fatigué → dort ». Avant de cliquer, essayez de prévoir : ajouter un nombre positif à l’embedding fait-il nécessairement monter P(dort) ? Non : l’effet dépend aussi des poids qui lisent le contexte.</p>
+          <div class="choices"><button (click)="intervention.set(-0.001)">Valeur initiale − 0,001</button><button (click)="intervention.set(0)">Valeur initiale</button><button (click)="intervention.set(0.001)">Valeur initiale + 0,001</button></div>
+          <table aria-live="polite"><thead><tr><th>À suivre dans l’ordre</th><th>Avant</th><th>Après intervention</th></tr></thead><tbody>
+            <tr><th>Paramètre E(fatigué)₁</th><td>{{ studyModel.embedding('fatigué')[0] | number:'1.7-7' }}</td><td>{{ studyModel.embedding('fatigué')[0] + intervention() | number:'1.7-7' }}</td></tr>
+            <tr><th>h₁, la moyenne</th><td>{{ study.context[0] | number:'1.7-7' }}</td><td>{{ interventionTrace().context[0] | number:'1.7-7' }}</td></tr>
+            <tr><th>Score de dort</th><td>{{ study.logits[0] | number:'1.7-7' }}</td><td>{{ interventionTrace().logits[0] | number:'1.7-7' }}</td></tr>
+            <tr><th>P(dort)</th><td>{{ study.probabilities[0] | number:'1.7-7' }}</td><td>{{ interventionTrace().probabilities[0] | number:'1.7-7' }}</td></tr>
+            <tr><th>Perte</th><td>{{ study.loss | number:'1.9-9' }}</td><td>{{ interventionTrace().loss | number:'1.9-9' }}</td></tr>
+          </tbody></table>
+          <p>Pourquoi h₁ bouge-t-il deux fois moins ? Parce que le paramètre entre dans une moyenne de deux mots. Pourquoi l’effet est-il petit ? Nous déplaçons un seul nombre de seulement 0,001, et les poids initiaux sont petits.</p>
+          <h3>De l’expérience à la pente</h3>
+          <p>Soustrayons la perte obtenue à −0,001 de celle obtenue à +0,001, puis divisons par la distance parcourue : 0,002. Ce quotient, une <b>différence finie</b>, estime le gradient de la perte par rapport à ce paramètre.</p>
+          <div class="equation">[L(x + 0,001) − L(x − 0,001)] / 0,002 ≈ <b>{{ finiteDifference | number:'1.7-7' }}</b><small>Pente négative : augmenter un peu x réduit la perte. Pente positive : le diminuer réduit la perte.</small></div>
+          <p>On ne cherche pas « la valeur qui signifie fatigue ». On cherche une petite modification qui améliore une prédiction. Tester deux modifications pour chaque paramètre serait très coûteux à grande échelle.</p>
+          <p class="destination">La rétropropagation retrouve cette même pente en remontant les opérations. Sa formule vient de la chaîne déjà parcourue, pas d’une nouvelle règle linguistique.</p>
+        }
+        @case (7) {
+          <p class="bridge">Retrouvons la pente mesurée en calculant comment chaque opération transmet une petite variation.</p>
+          <h2>Remonter du résultat au réglage, sans saut d’étape.</h2>
+          <p>La notation ∂L/∂x signifie « sensibilité de la perte L à une petite variation de x, les autres paramètres étant fixes ». C’est une dérivée partielle. Une variation passe par la moyenne, les scores puis les probabilités : on multiplie les sensibilités le long d’un chemin et on additionne les différents chemins.</p>
+          <h3>1. De la perte aux trois scores</h3>
+          <p>Appelons z₀ le score de « dort » et S = exp(z₀) + exp(z₁) + exp(z₂). Nous avons P(dort) = exp(z₀)/S. Donc L = −ln(exp(z₀)/S) = −z₀ + ln(S). Dériver ln(S) par rapport au score zᵢ donne exp(zᵢ)/S, c’est-à-dire P(i). Le terme −z₀ ajoute −1 uniquement pour la cible.</p>
+          <p>D’où <b>∂L/∂zᵢ = P(i) − cibleᵢ</b>, avec cibleᵢ = 1 pour « dort », 0 sinon. Ces 0 et 1 décrivent la bonne sortie, pas le one-hot d’entrée qui sélectionnait un embedding.</p>
+          <table><thead><tr><th>Sortie</th><th>Calcul</th><th>Sensibilité du score</th></tr></thead><tbody>@for (candidate of candidates; track candidate; let i = $index) {<tr><th>{{ candidate }}</th><td>{{ study.probabilities[i] | number:'1.6-6' }} − {{ i === 0 ? 1 : 0 }}</td><td>{{ studyGradient.logitGradients[i] | number:'1.6-6' }}</td></tr>}</tbody></table>
+          <h3>2. Des scores à la première coordonnée du contexte</h3>
+          <p>Chaque score contient h₁ × son poids de lecture w₁. Si h₁ bouge de ε, ce score bouge de w₁ × ε. Multiplions la sensibilité de chaque score par son poids, puis additionnons les trois chemins :</p>
+          <div class="equation">@for (candidate of candidates; track candidate; let i = $index) {<span class="term">{{ i > 0 ? '+' : '' }} ({{ studyGradient.logitGradients[i] | number:'1.6-6' }}) × ({{ studyModel.outputWeights(candidate)[0] | number:'1.6-6' }}) <small>chemin via « {{ candidate }} »</small></span>}<b>= {{ studyGradient.contextGradients[0] | number:'1.7-7' }} = ∂L/∂h₁</b></div>
+          <h3>3. Du contexte à l’embedding de « fatigué »</h3>
+          <p>h₁ = (E(chien)₁ + E(fatigué)₁)/2. Augmenter E(fatigué)₁ de ε augmente h₁ de ε/2. La sensibilité se multiplie donc par 1/2 :</p>
+          <div class="equation">∂L/∂E(fatigué)₁ = {{ studyGradient.contextGradients[0] | number:'1.7-7' }} / 2 = <b>{{ studyGradient.embeddingGradients[1][0] | number:'1.7-7' }}</b><small>Pente mesurée au chapitre précédent : {{ finiteDifference | number:'1.7-7' }}. Les deux méthodes retrouvent le même résultat à l’arrondi près.</small></div>
+          <h3>4. En déduire un petit pas, pas une valeur parfaite</h3>
+          <p>Nous choisissons une taille de pas η = 0,16, le <b>taux d’apprentissage</b>. Nouveau paramètre = ancien paramètre − η × gradient. Le gradient indique le sens local de hausse de la perte ; on part dans l’autre sens. Un pas trop grand pourrait dépasser la zone favorable.</p>
+          <div class="equation">Pour cet exemple seul : {{ studyModel.embedding('fatigué')[0] | number:'1.7-7' }} − 0,16 × ({{ studyGradient.embeddingGradients[1][0] | number:'1.7-7' }}) = {{ studyModel.embedding('fatigué')[0] - 0.16 * studyGradient.embeddingGradients[1][0] | number:'1.7-7' }}</div>
+          <p>Les poids de sortie apprennent aussi : pour zᵢ = h₁wᵢ₁ + h₂wᵢ₂ + bᵢ, la sensibilité à wᵢ₁ vaut (P(i) − cibleᵢ) × h₁ ; celle à bᵢ vaut P(i) − cibleᵢ. La deuxième coordonnée suit le même raisonnement. Un mot absent ne participe pas au calcul de cet exercice, donc sa ligne reçoit un gradient nul pour cet exercice.</p>
+          <p class="destination">Nous avons détaillé <em>un</em> exemple. L’entraînement suivant utilisera la moyenne des gradients des sept exemples, puis corrigera tous les paramètres ensemble.</p>
+        }
+        @case (8) {
+          <p class="bridge">Corriger un exercice peut nuire à un autre. Les lignes et les lecteurs étant partagés, nous devons tenir compte du corpus entier.</p>
+          <h2>Prédire, mesurer, corriger, recommencer.</h2>
+          <ol><li>Avec le même état des paramètres, calculer les prédictions des 7 exemples.</li><li>Pour chacun, calculer sa perte et ses gradients comme au chapitre précédent.</li><li>Pour chaque paramètre, additionner ses 7 gradients puis diviser par 7. Une absence dans un exemple contribue zéro.</li><li>Soustraire 0,16 fois ce gradient moyen à chaque paramètre.</li><li>Recalculer : la prochaine correction dépend du nouvel état.</li></ol>
+          <p>Un passage complet sur le corpus est une <b>époque</b>. Ici, il correspond à une mise à jour sur un lot contenant les sept exemples. Nous faisons une descente de gradient simple.</p>
+          <div class="choices"><button (click)="train(1)">Faire 1 époque</button><button class="primary" (click)="train(100)">Faire 100 époques</button></div>
+          <div class="metrics" aria-live="polite"><span>Époques<br><b>{{ model.epoch }}</b></span><span>Perte moyenne initiale<br><b>{{ initialLoss | number:'1.6-6' }}</b></span><span>Perte moyenne actuelle<br><b>{{ trainingLoss() | number:'1.6-6' }}</b></span></div>
+          <table><thead><tr><th>Paramètre partagé de « fatigué »</th><th>Initial</th><th>Actuel</th></tr></thead><tbody>@for (d of [0, 1]; track d) {<tr><th>Coordonnée {{ d + 1 }}</th><td>{{ studyModel.embedding('fatigué')[d] | number:'1.6-6' }}</td><td>{{ model.embedding('fatigué')[d] | number:'1.6-6' }}</td></tr>}</tbody></table>
+          <p>« Fatigué » a reçu des corrections issues du chien et de la souris. « Chat » a reçu celles de ses propres exemples. Notre test n’a jamais fourni de gradient.</p>
+          <p class="warning">Les écrans précédents restent figés à l’état initial pour rester reproductibles. Ce laboratoire, la géométrie et le test utilisent l’état entraîné. Le pas calculé sur un exemple n’est pas exactement celui du lot de sept.</p>
+          <p class="destination">Effectuez au moins 300 époques pour cette expérience. Ce seuil organise la comparaison ; ce n’est pas une loi garantissant l’apprentissage de tout réseau.</p>
+        }
+        @case (9) {
+          <p class="bridge">Les nombres ont bougé sous l’effet des erreurs. Dessinons-les sans leur inventer un sens que nous n’avons pas appris.</p>
+          <h2>La géométrie est une vue des paramètres.</h2>
+          <p>Un vecteur [x, y] devient un point : x donne sa position horizontale, y sa position verticale. Les axes sont les deux coordonnées de la table, pas la place du mot dans la phrase. Leurs unités sont celles des paramètres.</p>
+          <figure><svg viewBox="0 0 430 430" role="img" aria-label="Embeddings appris dans un repère à deux coordonnées, chaque token est étiqueté">
+            <line x1="45" y1="200" x2="355" y2="200" class="axis"/><line x1="200" y1="45" x2="200" y2="355" class="axis"/>
+            <text x="206" y="216">0</text><text x="270" y="420">coordonnée 1 →</text><text x="8" y="18">coordonnée 2 ↑</text><text x="350" y="217">{{ plotLimit() | number:'1.2-2' }}</text>
+            @for (token of vocabulary; track token; let i = $index) {<circle [attr.cx]="plot(geometryModel().embedding(token)[0])" [attr.cy]="400 - plot(geometryModel().embedding(token)[1])" r="5"/><text [attr.x]="plot(geometryModel().embedding(token)[0]) + 8" [attr.y]="400 - plot(geometryModel().embedding(token)[1]) + (i % 2 === 0 ? -8 : 16)">{{ token }}</text>}
+          </svg><figcaption>{{ model.epoch }} époques. Même échelle sur les deux axes. Valeurs numériques dans la table ci-dessous.</figcaption></figure>
+          <h3>Pourquoi cette géométrie peut-elle être utile ?</h3>
+          <p>Deux représentations proches produisent des moyennes proches si le reste du contexte reste identique. Les mêmes poids de lecture donnent alors des scores proches. Des contraintes similaires peuvent pousser les mots à jouer des rôles similaires. Ce corpus ne garantit ni synonymie parfaite, ni axes interprétables.</p>
+          <h3>Retirer le « sens secret » des axes</h3>
+          <p>Prévoyez ce qui se passe si on tourne tous les embeddings <em>et tous les poids de lecture</em> d’un quart de tour. La transformation [x, y] → [−y, x] change les coordonnées, mais conserve chaque produit scalaire : (−y)(−v) + xu = xu + yv. Les biais restent identiques.</p>
+          <button (click)="toggleRotation()">{{ rotated() ? 'Revenir au repère initial' : 'Tourner les vecteurs ET les lecteurs de 90°' }}</button>
+          <table><thead><tr><th>Token</th><th>Coordonnée 1</th><th>Coordonnée 2</th></tr></thead><tbody>@for (token of vocabulary; track token) {<tr><th>{{ token }}</th><td>{{ geometryModel().embedding(token)[0] | number:'1.5-5' }}</td><td>{{ geometryModel().embedding(token)[1] | number:'1.5-5' }}</td></tr>}</tbody></table>
+          <p aria-live="polite">P(dort | chat fatigué) avant rotation : <b>{{ testTrace().probabilities[0] | number:'1.7-7' }}</b> · dans le repère affiché : <b>{{ geometryModel().trace(testTokens).probabilities[0] | number:'1.7-7' }}</b>.</p>
+          <p class="destination">Les coordonnées seules ne sont donc pas « le sens ». Leur rôle dans le calcul appris compte. Vérifions maintenant le comportement sur la combinaison réservée.</p>
+        }
+        @case (10) {
+          <p class="bridge">Testons à paramètres figés : utiliser le modèle consiste seulement à faire circuler un contexte dans ses calculs.</p>
+          <h2>« Chat fatigué » n’est pas connu comme paire. Ses deux lignes le sont.</h2>
+          <label>Contexte à tester : chat <select [value]="testAdjective()" (change)="testAdjective.set($any($event.target).value)"><option>fatigué</option><option>joueur</option><option>affamé</option></select></label>
+          <p>Le programme lit E(chat) et E({{ testAdjective() }}), fait la moyenne, puis applique les lecteurs appris. Aucun « si fatigué, alors dort » n’a été ajouté au code. « Joueur » et « affamé » sont des contrôles déjà vus avec chat ; seul « chat fatigué » est la recombinaison réservée.</p>
+          <div class="bars" aria-live="polite">@for (candidate of candidates; track candidate; let i = $index) {<div><span>{{ candidate }}</span><progress [value]="counterTrace().probabilities[i]" max="1" [attr.aria-label]="'Probabilité de ' + candidate"></progress><b>{{ counterTrace().probabilities[i] * 100 | number:'1.2-2' }} %</b></div>}</div>
+          <h3>Pourquoi cette sortie gagne-t-elle, concrètement ?</h3>
+          <p>La moyenne testée vaut [{{ counterTrace().context[0] | number:'1.5-5' }}, {{ counterTrace().context[1] | number:'1.5-5' }}]. Voici les trois lecteurs entraînés. La plus grande somme donne la plus grande probabilité :</p>
+          @for (candidate of candidates; track candidate; let i = $index) {<div class="equation"><b>{{ candidate }}</b> : ({{ counterTrace().context[0] | number:'1.5-5' }}) × ({{ model.outputWeights(candidate)[0] | number:'1.5-5' }}) + ({{ counterTrace().context[1] | number:'1.5-5' }}) × ({{ model.outputWeights(candidate)[1] | number:'1.5-5' }}) + ({{ model.outputBias(candidate) | number:'1.5-5' }}) = <b>{{ counterTrace().logits[i] | number:'1.5-5' }}</b></div>}
+          <p>L’explication est double : les données ont favorisé certaines corrections, puis ces paramètres produisent ces scores par le calcul visible. Ce n’est ni une recherche de la phrase entière, ni une garantie logique. Avec d’autres données ou un apprentissage insuffisant, la réponse pourrait changer.</p>
+          <p class="destination">Nous avons testé une petite généralisation. Distinguons ce mécanisme partagé par les réseaux de ce qui manque encore pour un LLM moderne.</p>
+        }
+        @case (11) {
+          <p class="bridge">Nous avons suivi un modèle entraînable de bout en bout. Sa simplicité permet d’expliquer les calculs, mais impose des limites.</p>
+          <h2>Ce que vous venez de construire — et ce que ce n’est pas.</h2>
+          <table><thead><tr><th>Dans notre laboratoire</th><th>Dans un LLM moderne</th></tr></thead><tbody>
+            <tr><th>Un mot = un token, trois sorties</th><td>Un tokenizer découpe le texte ; la sortie couvre le vocabulaire de tokens.</td></tr>
+            <tr><th>Deux coordonnées par embedding</th><td>Des embeddings plus larges, sans sens humain imposé à chaque coordonnée.</td></tr>
+            <tr><th>Une moyenne qui oublie l’ordre</th><td>Des mécanismes de position et d’attention causale construisent des représentations dépendantes du contexte et de l’ordre.</td></tr>
+            <tr><th>Trois lecteurs après la moyenne</th><td>De nombreux blocs d’attention et réseaux non linéaires avant la projection de sortie.</td></tr>
+            <tr><th>Sept cibles, descente de gradient simple</th><td>De nombreuses positions du texte servent de cibles ; des optimiseurs ajustent les paramètres sur de grands corpus.</td></tr>
+          </tbody></table>
+          <h3>Le lien qui reste identique</h3>
+          <p>À l’entraînement : texte → représentations → scores → probabilités → perte → gradients → correction. En utilisation : même calcul de prédiction, mais sans consulter une bonne réponse et sans modifier les paramètres. Pour générer plusieurs tokens, on choisit une sortie, on l’ajoute au contexte et on recommence.</p>
+          <p class="warning">Notre modèle ne sait pas dérouler librement une conversation : ses entrées et ses trois sorties sont restreintes. Il n’a ni attention, ni notion d’ordre, ni bloc non linéaire caché. Ce n’est pas un LLM miniature complet.</p>
+          <h3>Pourquoi la prochaine leçon existe</h3>
+          <p>Dans « chat après promenade fatigué donc », donner le même coefficient à tous les mots est une contrainte forte. Peut-on calculer des coefficients dépendant des représentations du contexte ? C’est la question de l’attention. Gardons la distinction entre <b>paramètres appris</b> et <b>coefficients calculés pour une entrée</b>.</p>
+          <p class="destination">Vous devriez pouvoir expliquer : ce qui sélectionne une ligne, ce qui mélange les mots, ce qui calcule les scores et ce qui modifie les paramètres. Le sommaire permet de revenir sur un lien précis sans effacer l’entraînement.</p>
+        }
+      }
+      <section class="checkpoint"><h2>Vérifier le lien, pas mémoriser une formule</h2><p>{{ questions[step()].prompt }}</p>
+        <div class="choices">@for (option of questions[step()].options; track $index) {<button [class.selected]="answers()[step()] === $index" (click)="answer($index)">{{ option }}</button>}</div>
+        @if (answers()[step()] !== undefined) {<p role="status"><b>{{ answers()[step()] === questions[step()].correct ? 'Oui.' : 'Pas tout à fait.' }}</b> {{ questions[step()].why }}</p>}
+      </section>
+      <footer><button [disabled]="step() === 0" (click)="previous()">← Revenir</button>
+        @if (step() < steps.length - 1) {<button class="primary" [disabled]="!canContinue()" (click)="next()">{{ steps[step() + 1] }} →</button>}
+        @else {<button class="primary" [disabled]="!canFinish()" (click)="completed.emit()">Poursuivre avec l’attention →</button>}
+      </footer>
+      @if (!canContinue()) {<p class="resume">Répondez à la question pour poursuivre. @if (step() === 8 && model.epoch < 300) {Il reste aussi à atteindre 300 époques avec les boutons d’entraînement.}</p>}
+      @if (step() === 11 && model.epoch < 300) {<p class="resume">Pour terminer l’expérience, entraînez le modèle au chapitre 9 (au moins 300 époques), puis observez le test du chapitre 11.</p>}
+    </main>
+  </div>
+}

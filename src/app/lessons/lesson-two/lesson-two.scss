@@ -1,0 +1,109 @@
+:host { display: block; color: #15211d; }
+* { box-sizing: border-box; }
+.breadcrumb { color: #668078; font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+button, input { font: inherit; }
+
+.lesson-two-intro, .lesson-two-lab { max-width: 1450px; margin: 0 auto; }
+.intro-layout { display: grid; grid-template-columns: 1.25fr .75fr; gap: 55px; align-items: end; margin-top: 20px; }
+.chapter-mark { color: #8dbba9; font: 15px ui-monospace, monospace; }
+.intro-layout h1, header h1 { margin: 8px 0 14px; font: 47px/1.02 Georgia, serif; letter-spacing: -.045em; }
+.intro-layout h1 em, header h1 em { color: #376c5c; font-weight: 400; }
+.intro-layout > div > p { max-width: 720px; color: #68716d; font: 15px/1.6 Georgia, serif; }
+.intro-layout aside { padding: 24px; border-radius: 13px; background: #173f35; color: #fff; box-shadow: 0 15px 35px rgba(23,63,53,.14); }
+.intro-layout aside > span { color: #a7f3d0; font-size: 8px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.intro-layout aside > strong { display: block; margin-top: 8px; font: 21px Georgia, serif; }
+blockquote { margin: 16px 0; padding: 13px; border-left: 2px solid #a7f3d0; background: rgba(255,255,255,.06); color: #e9f5ef; font: italic 13px/1.45 Georgia, serif; }
+.intro-layout aside p { color: rgba(255,255,255,.58); font-size: 10px; }
+
+.bridge-card { display: grid; grid-template-columns: 1fr 35px 1fr 35px 1fr; align-items: center; margin-top: 34px; padding: 25px; border: 1px solid #d9ddd7; border-radius: 14px; background: #fffefb; box-shadow: 0 16px 45px rgba(27,42,35,.06); }
+.bridge-card div { display: grid; gap: 7px; min-height: 100px; padding: 14px; }
+.bridge-card div > span { color: #5d796f; font-size: 8px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.bridge-card strong { font: 17px Georgia, serif; }
+.bridge-card p { margin: 0; color: #7a827f; font-size: 9px; line-height: 1.5; }
+.bridge-card i { color: #91a099; font-style: normal; text-align: center; }
+.lesson-start { display: flex; align-items: center; justify-content: space-between; gap: 25px; margin-top: 16px; padding: 18px 22px; border: 1px solid #d9ddd7; border-radius: 11px; background: #f9f8f4; }
+.lesson-start > div { display: grid; gap: 4px; }
+.lesson-start > div span { color: #4d786b; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.lesson-start > div strong { font: 13px Georgia, serif; }
+.lesson-start button, .correct button { display: flex; justify-content: space-between; gap: 28px; padding: 12px 15px; border: 0; border-radius: 8px; background: #173f35; color: #fff; cursor: pointer; font-size: 10px; font-weight: 700; }
+.lesson-start button span, .correct button span { color: #a7f3d0; }
+
+header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 25px; }
+header h1 { font-size: 38px; }
+header p { margin: 0; color: #6e7773; font: 13px Georgia, serif; }
+header button { padding: 9px 12px; border: 1px solid #d7dad5; border-radius: 7px; background: rgba(255,255,255,.55); color: #68716d; cursor: pointer; font-size: 9px; }
+.classifier-workspace { display: grid; grid-template-columns: minmax(0,1fr) 315px; overflow: hidden; border: 1px solid #d7dbd5; border-radius: 14px; background: #fffefb; box-shadow: 0 18px 50px rgba(27,42,35,.07); }
+.classifier-main { min-width: 0; padding: 22px; }
+.message-card { display: flex; align-items: center; gap: 25px; padding: 16px 18px; border: 1px solid #dfdfda; border-radius: 9px; background: #faf9f5; }
+.message-card > span { flex: 0 0 auto; color: #66746f; font-size: 8px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.message-card p { margin: 0; font: 14px Georgia, serif; }
+mark { padding: 2px 4px; border-radius: 3px; background: #fff0b8; color: inherit; }
+
+.neuron-flow { display: grid; grid-template-columns: 1fr 20px 1fr 20px .9fr 20px .9fr; align-items: stretch; gap: 7px; margin-top: 20px; padding: 22px 15px; border-radius: 10px; background-image: radial-gradient(#dfe2dd .7px,transparent .7px); background-size: 18px 18px; }
+.neuron-flow section { display: grid; align-content: start; gap: 8px; min-height: 185px; padding: 13px; border: 1px solid #d7dcd7; border-radius: 9px; background: rgba(255,254,251,.96); transition: opacity .25s ease; }
+.neuron-flow section.muted, .decision-bar.muted { opacity: .18; }
+.flow-label { color: #657a72; font-size: 7px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.flow-arrow { align-self: center; color: #91a099; text-align: center; }
+.input-chip, .calculation { display: grid; grid-template-columns: 1fr auto; gap: 3px; padding: 9px; border: 1px solid #e2e4df; border-radius: 7px; background: #fff; }
+.input-chip small { color: #77817d; font-size: 8px; }
+.input-chip strong { font: 16px ui-monospace, monospace; }
+.input-chip em { grid-column: 1/-1; color: #9aa09e; font-size: 7px; font-style: normal; }
+.calculation span { color: #73807b; font: 9px ui-monospace, monospace; }
+.calculation strong { font: 14px ui-monospace, monospace; }
+.score-stage code, .activation-stage code { color: #466a5e; font-size: 9px; }
+.score-stage > strong { margin: auto; font: 30px ui-monospace, monospace; }
+.score-stage em, .activation-stage em { color: #919895; font-size: 7px; font-style: normal; text-align: center; }
+.activation-stage { background: #f1f8f4 !important; border-color: #c8ddd3 !important; }
+.probability-ring { display: grid; width: 75px; height: 75px; margin: 5px auto; place-items: center; border-radius: 50%; background: conic-gradient(#2e735c var(--probability),#dfe6e1 0); position: relative; }
+.probability-ring::after { content: ''; position: absolute; inset: 7px; border-radius: 50%; background: #f1f8f4; }
+.probability-ring strong { z-index: 1; font: 14px ui-monospace, monospace; }
+.decision-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; padding: 12px 15px; border-radius: 8px; background: #f6e8de; color: #8b3c22; transition: opacity .25s ease; }
+.decision-bar.normal { background: #e6f3ec; color: #236248; }
+.decision-bar span { font-size: 8px; }
+.decision-bar strong { font: 14px Georgia, serif; }
+
+.guided-step { display: grid; grid-template-columns: 34px minmax(240px,1fr) minmax(230px,.8fr) 62px; align-items: center; gap: 13px; margin-top: 14px; padding: 15px; border: 1px solid #e0e2dd; border-radius: 9px; background: #faf9f5; }
+.guided-step button { width: 32px; height: 32px; border: 1px solid #d5d8d3; border-radius: 7px; background: #fff; color: #245344; cursor: pointer; }
+.guided-step button:disabled { opacity: .3; cursor: default; }
+.guided-step > div:nth-child(2) { display: grid; gap: 3px; }
+.guided-step > div:nth-child(2) span, .watch span { color: #477165; font-size: 7px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.guided-step strong { font: 13px Georgia, serif; }
+.guided-step p { margin: 0; color: #7a827f; font-size: 8px; line-height: 1.45; }
+.watch { padding: 9px; border-left: 2px solid #d5b76e; background: #fff8e8; }
+.step-nav { display: flex; align-items: center; gap: 7px; }
+.step-nav small { color: #929996; font-size: 8px; }
+
+.knowledge-check { margin-top: 14px; padding: 20px; border: 1px solid #c9dcd3; border-radius: 10px; background: #f1f8f4; }
+.knowledge-check > span { color: #467263; font-size: 8px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.knowledge-check h2 { margin: 7px 0 14px; font: 18px Georgia, serif; }
+.answers { display: flex; gap: 8px; }
+.answers button { padding: 9px 12px; border: 1px solid #c9d2cd; border-radius: 7px; background: #fff; cursor: pointer; font-size: 9px; }
+.answers button.selected { border-color: #39725f; background: #e2f2ea; color: #245a47; }
+.wrong { margin: 12px 0 0; color: #8b543d; font-size: 9px; }
+.correct { display: grid; grid-template-columns: 70px 1fr auto; align-items: center; gap: 12px; margin-top: 13px; padding-top: 13px; border-top: 1px solid #c8ded3; }
+.correct > span { color: #246a4d; font-size: 10px; font-weight: 800; }
+.correct p { margin: 0; color: #587068; font-size: 9px; }
+
+.classifier-controls { padding: 20px; border-left: 1px solid #e0e3de; background: #f9f8f4; }
+.control-title { color: #53635d; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.toggle-control { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 17px; }
+.toggle-control div { display: grid; gap: 3px; }
+.toggle-control strong { font-size: 10px; }
+.toggle-control small, .classifier-controls label > small { color: #929996; font-size: 7px; line-height: 1.35; }
+.toggle-control button { padding: 7px 9px; border: 1px solid #d3d8d4; border-radius: 6px; background: #fff; color: #7b8581; cursor: pointer; font-size: 8px; }
+.toggle-control button.on { border-color: #98c7b4; background: #dff3e9; color: #256047; }
+.classifier-controls label { display: grid; gap: 6px; margin-top: 17px; }
+.classifier-controls label > span { display: flex; align-items: center; gap: 5px; color: #5e6965; font-size: 9px; }
+.classifier-controls output { margin-left: auto; color: #15211d; font: 700 9px ui-monospace, monospace; }
+.classifier-controls code { color: #39705d; font-size: 9px; }
+.classifier-controls input { width: 100%; accent-color: #2e7059; }
+.parameter-divider { display: grid; gap: 3px; margin-top: 23px; padding-top: 16px; border-top: 1px solid #dde0dc; }
+.parameter-divider span { color: #39705d; font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.parameter-divider small { color: #949a97; font-size: 7px; }
+.neuron-definition { display: grid; gap: 5px; margin-top: 24px; padding: 13px; border: 1px solid #c8ddd3; border-radius: 8px; background: #eaf5ef; }
+.neuron-definition span { color: #39705d; font-size: 7px; font-weight: 800; text-transform: uppercase; }
+.neuron-definition strong { font: 11px ui-monospace, monospace; }
+.neuron-definition p { margin: 0; color: #718078; font-size: 8px; line-height: 1.4; }
+
+@media (max-width: 1100px) { .classifier-workspace { grid-template-columns: 1fr; } .classifier-controls { border-top: 1px solid #e0e3de; border-left: 0; } .neuron-flow { overflow-x: auto; } }
+@media (max-width: 760px) { .intro-layout { grid-template-columns: 1fr; gap: 20px; } .intro-layout h1 { font-size: 36px; } .bridge-card { grid-template-columns: 1fr; } .bridge-card i { transform: rotate(90deg); } .lesson-start { align-items: stretch; flex-direction: column; } header { display: block; } header button { margin-top: 12px; } .neuron-flow { display: flex; min-width: 0; overflow-x: auto; } .neuron-flow section { flex: 0 0 190px; } .guided-step { grid-template-columns: 32px 1fr 55px; } .watch { grid-column: 2/-1; } .correct { grid-template-columns: 1fr; } .answers { flex-direction: column; } }

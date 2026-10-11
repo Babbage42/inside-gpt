@@ -1,0 +1,65 @@
+:host { display:block; color:#243b36; }
+* { box-sizing:border-box; }
+button,select,input { font:inherit; }
+button { cursor:pointer; }
+.l3-topline { margin:0 0 1.1rem; color:#64877a; font-size:.72rem; font-weight:800; letter-spacing:.14em; }
+.l3-hero,.l3-workbench,.l3-lesson { margin-bottom:1rem; padding:clamp(1.1rem,3vw,2rem); border:1px solid #d9e5dc; border-radius:21px; background:#fffefa; box-shadow:0 7px 24px #193e2810; }
+.l3-hero { border:0; background:linear-gradient(120deg,#213e37,#326d59); color:#fff; }
+.l3-hero small { color:#c1ebd1; font-size:.72rem; font-weight:800; letter-spacing:.08em; }
+.l3-hero h1 { margin:1rem 0 .6rem; font:500 clamp(2rem,3.6vw,3rem)/1.1 Georgia,serif; }
+.l3-hero p { max-width:75ch; margin:0; color:#d7ebe0; line-height:1.65; }
+.workbench-heading { display:flex; justify-content:space-between; gap:1rem; }
+.workbench-heading small,.workbench-heading strong { display:block; }
+.workbench-heading small,.l3-lesson header small,.equation-card small,.proof-grid small,.contrast small,.comparison small { color:#52816b; font-size:.69rem; font-weight:850; letter-spacing:.08em; text-transform:uppercase; }
+.workbench-heading strong { margin-top:.25rem; font-size:1.05rem; }
+.workbench-heading span,.status-line { color:#70857a; font-size:.8rem; }
+.prompt-choices,.workbench-controls,.experiment-controls,.proof-grid,.contrast,.comparison,.token-weights { display:flex; flex-wrap:wrap; gap:.7rem; margin:1rem 0; }
+.prompt-choices button { flex:1 1 260px; padding:.9rem; border:1px solid #d4e5d8; border-radius:11px; background:#f5faf5; color:#28503a; text-align:left; }
+.prompt-choices button.active { border-color:#41976a; background:#e4f5e9; box-shadow:inset 0 0 0 1px #41976a; }
+.workbench-controls label,.experiment-controls label { display:flex; align-items:center; flex-wrap:wrap; gap:.45rem; color:#50685a; font-size:.85rem; }
+select { padding:.35rem .5rem; border:1px solid #cbded1; border-radius:7px; background:#fff; color:#264638; }
+input[type=range] { accent-color:#32845c; }
+.comparison > div,.proof-grid > div,.contrast > div { flex:1 1 220px; min-width:0; padding:1rem; border:1px solid #dce9dc; border-radius:11px; background:#f5faf4; }
+.comparison strong,.comparison span,.proof-grid b,.proof-grid span,.contrast strong { display:block; margin-top:.5rem; overflow-wrap:anywhere; }
+.comparison span,.proof-grid span { color:#557061; font-size:.85rem; }
+.status-line { margin:.75rem 0 0; }
+.l3-lesson header { padding-bottom:1rem; border-bottom:1px solid #dce9dc; }
+.l3-lesson h2 { margin:.4rem 0 0; font:500 clamp(1.65rem,3vw,2.3rem)/1.15 Georgia,serif; }
+.learning-guide { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin:1.2rem 0; }
+.learning-guide > div { padding:.9rem; border:1px solid #dce9dc; border-radius:10px; background:#f2f8f1; }
+.learning-guide small { display:block; margin-bottom:.4rem; color:#568268; font-size:.68rem; font-weight:850; text-transform:uppercase; letter-spacing:.08em; }
+.learning-guide strong { font-size:.84rem; line-height:1.48; }
+.narrative { max-width:78ch; margin:1.4rem 0; color:#41594b; font-size:1rem; line-height:1.75; }
+.narrative p { margin:0 0 .9rem; }
+.finding { margin:1.5rem 0; padding:1rem 1.2rem; border-left:4px solid #c58b45; border-radius:0 9px 9px 0; background:#fff6e9; color:#5a4934; line-height:1.6; }
+.experiment-controls { padding:1rem; border:1px solid #dce9dc; border-radius:10px; background:#f8fbf6; }
+.equation-card { margin:1rem 0; padding:1.1rem; border:1px solid #cfe2d3; border-radius:11px; background:#edf7ee; }
+.equation-card strong { display:block; margin:.6rem 0; overflow-wrap:anywhere; font-size:.95rem; }
+.equation-card p { margin:.6rem 0 0; color:#526b58; font-size:.88rem; line-height:1.55; }
+.token-weights > div { flex:1 1 110px; padding:.75rem; border:1px solid #dce9dc; border-radius:9px; background:#f8fbf8; }
+.token-weights > div.focus { border-color:#3e9568; background:#eaf7ed; }
+.token-weights small,.token-weights strong,.token-weights span,.token-weights b { display:block; margin-bottom:.35rem; }
+.token-weights small { color:#6b8571; font-size:.7rem; }
+.token-weights span { font-size:.78rem; }
+.slot-strip { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.45rem; margin:1.1rem 0; }
+.slot-strip button { display:grid; gap:.4rem; min-width:0; padding:1rem .6rem; border:1px solid #d7e6d8; border-radius:10px; background:#f8fbf7; color:#2c553a; text-align:center; }
+.slot-strip button.focus { border-color:#348e5d; background:#e8f5e9; box-shadow:inset 0 0 0 1px #348e5d; }
+.slot-strip small { color:#67876d; font-size:.68rem; font-weight:850; }
+.slot-strip strong { overflow-wrap:anywhere; font-size:1.05rem; }
+.slot-strip span { color:#6c836f; font-size:.69rem; }
+.slot-reading { margin:1rem 0; padding:1rem 1.2rem; border:1px solid #d6e5d8; border-radius:10px; background:#f5faf3; color:#365543; line-height:1.65; }
+.cancellation-demo { margin:1.3rem 0; padding:1rem; border:1px solid #cce1d6; border-radius:12px; background:#f5fbf8; }
+.cancellation-demo > strong { display:block; margin-bottom:.5rem; color:#285744; }
+.cancellation-demo p { margin:.4rem 0 1rem; color:#587266; line-height:1.55; }
+.cancellation-row { display:flex; align-items:center; flex-wrap:wrap; gap:.45rem; margin:.45rem 0; }
+.cancellation-row span { width:2rem; color:#286849; font-weight:850; }
+.cancellation-row b { padding:.45rem .6rem; border:1px solid #dce9e0; border-radius:7px; background:white; font-size:.83rem; font-weight:600; }
+.cancellation-result { margin-top:1rem; padding:.8rem; border-radius:8px; background:#e7f4eb; color:#24563b; line-height:1.55; }
+.math-reveal { margin:1.2rem 0; padding:1rem 1.2rem; border:1px solid #d5e5d8; border-radius:10px; background:#f8faf5; color:#455c4a; line-height:1.65; }
+.math-reveal summary { cursor:pointer; color:#2f6b48; font-weight:750; }
+.contrast p { margin:.6rem 0 0; color:#526a59; line-height:1.55; }
+.l3-footer { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:2rem; padding-top:1.2rem; border-top:1px solid #dce9dc; }
+.l3-footer button { padding:.7rem .9rem; border:1px solid #ccdccc; border-radius:9px; background:white; color:#315c40; }
+.l3-footer button.next { border-color:#255b3c; background:#255b3c; color:white; }
+.l3-footer span { color:#718678; font-size:.8rem; }
+@media (max-width:640px) { .l3-footer { flex-wrap:wrap; } .l3-footer span { order:-1; width:100%; text-align:center; } .workbench-heading { display:block; } .learning-guide { grid-template-columns:1fr; } .slot-strip { grid-template-columns:repeat(3,minmax(0,1fr)); } }

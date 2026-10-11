@@ -1,0 +1,45 @@
+:host { display:block; color:#243d39; }
+* { box-sizing:border-box; }
+button { cursor:pointer; font:inherit; }
+.l5-topline { margin:0 0 1rem; color:#588277; font-size:.72rem; font-weight:800; letter-spacing:.13em; }
+.l5-hero,.l5-card { margin-bottom:1rem; padding:clamp(1.1rem,3vw,2rem); border:1px solid #d5e5de; border-radius:20px; background:#fffefa; box-shadow:0 7px 24px #193e2810; }
+.l5-hero { border:0; background:linear-gradient(120deg,#214b45,#3d8276); color:white; }
+.l5-hero small { color:#c6eddf; font-size:.72rem; font-weight:800; letter-spacing:.07em; }
+.l5-hero h1 { margin:.9rem 0 .6rem; font:500 clamp(2rem,3.6vw,3rem)/1.1 Georgia,serif; }
+.l5-hero p { max-width:73ch; margin:0; color:#e0f0e9; line-height:1.65; }
+.l5-card header { padding-bottom:1rem; border-bottom:1px solid #dce9e3; }
+.l5-card header small { color:#47806e; font-size:.69rem; font-weight:850; letter-spacing:.1em; }
+.l5-card h2 { margin:.4rem 0 0; font:500 clamp(1.6rem,3vw,2.25rem)/1.15 Georgia,serif; }
+.l5-lead { max-width:74ch; margin:1.3rem 0; color:#415e56; line-height:1.75; }
+.l5-map { max-width:700px; margin:1.2rem 0; padding:1rem; border:1px solid #d2e5dc; border-radius:12px; background:#f5faf7; }
+.l5-map > strong { display:block; margin-bottom:.8rem; }
+.l5-map > div { display:grid; grid-template-columns:90px minmax(80px,1fr) 80px; align-items:center; gap:.7rem; margin:.6rem 0; }
+.l5-map span { font-weight:700; }
+.l5-map i { height:15px; border-radius:10px; background:#dfece7; }
+.l5-map i b { display:block; height:100%; border-radius:10px; background:#3c9a80; }
+.l5-map em { color:#466d60; font-size:.84rem; font-style:normal; text-align:right; }
+.l5-note { max-width:76ch; margin:1.2rem 0; padding:1rem 1.2rem; border-left:4px solid #d19c58; border-radius:0 9px 9px 0; background:#fff7eb; color:#5d503d; line-height:1.65; }
+.l5-note p { margin:.4rem 0 0; }
+details { max-width:800px; margin:1.2rem 0; padding:.9rem 1rem; border:1px solid #d4e6dc; border-radius:9px; background:#f8fbf8; color:#48645a; line-height:1.6; }
+summary { cursor:pointer; color:#2c755c; font-weight:750; }
+.l5-flow { display:flex; flex-wrap:wrap; align-items:center; gap:.35rem; margin:1rem 0; }
+.l5-flow span { padding:.55rem .7rem; border:1px solid #d1e7dd; border-radius:7px; background:#f2faf5; font-size:.83rem; }
+.l5-flow b { color:#619886; }
+.l5-actions { display:flex; flex-wrap:wrap; gap:.5rem; margin:1rem 0; }
+.l5-actions button,.l5-reset { padding:.7rem .85rem; border:1px solid #2a7961; border-radius:8px; background:#2a7961; color:white; }
+.l5-actions button:disabled { opacity:.55; cursor:wait; }
+.l5-stats,.l5-comparison,.l5-parameters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.7rem; margin:1rem 0; }
+.l5-stats > div,.l5-comparison > div,.l5-parameters > div { min-width:0; padding:1rem; border:1px solid #d8e8df; border-radius:10px; background:#f6faf7; }
+.l5-stats small,.l5-parameters small { display:block; color:#538672; font-size:.68rem; font-weight:850; letter-spacing:.07em; }
+.l5-stats strong,.l5-stats span,.l5-parameters strong,.l5-parameters span,.l5-comparison span { display:block; margin-top:.5rem; overflow-wrap:anywhere; }
+.l5-stats span,.l5-parameters span { color:#60776d; font-size:.83rem; line-height:1.5; }
+.l5-parameters { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.l5-comparison span { font-size:.85rem; }
+.l5-history { display:flex; align-items:flex-end; gap:1px; height:130px; overflow:hidden; border-bottom:1px solid #a2b9ac; }
+.l5-history i { flex:1 0 2px; max-width:12px; min-width:2px; background:#5aaf90; }
+.l5-reset { margin:1rem 0; background:#fff; color:#28654f; }
+.l5-footer { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:2rem; padding-top:1.2rem; border-top:1px solid #dce8df; }
+.l5-footer button { padding:.7rem .9rem; border:1px solid #cbded3; border-radius:8px; background:#fff; color:#2c5a47; }
+.l5-footer button.next { border-color:#25664e; background:#25664e; color:white; }
+.l5-footer span { color:#70867a; font-size:.8rem; }
+@media(max-width:700px) { .l5-stats,.l5-comparison,.l5-parameters { grid-template-columns:1fr; } .l5-map > div { grid-template-columns:60px minmax(0,1fr) 67px; gap:.4rem; } .l5-map em { font-size:.73rem; } .l5-footer { flex-wrap:wrap; } .l5-footer span { order:-1; width:100%; text-align:center; } }

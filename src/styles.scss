@@ -1,0 +1,9 @@
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: #f5f3ed;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button, input { font-family: inherit; }
+::selection { background: #a7f3d0; color: #173f35; }

@@ -1,0 +1,628 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="#" aria-label="Gradient Lab, accueil">
+      <span class="brand-mark">∇</span>
+      <span>Gradient<span>Lab</span></span>
+    </a>
+    <a href="/v2" style="display:block;margin-top:20px;padding:12px;border:1px solid #a7f3d066;border-radius:10px;color:#d8ffe6;text-decoration:none;font-size:12px;line-height:1.5">↗ Essayer le prototype V2<br /><small style="color:#a7f3d0">Un seul exemple, calculs traçables</small></a>
+
+    <div class="course-progress">
+      <div class="progress-ring">
+        <span>{{
+          lessonEightPreview()
+            ? 8
+            : lessonSevenPreview()
+              ? 7
+              : lessonSixPreview()
+                ? 6
+                : lessonFivePreview()
+                  ? 5
+                  : lessonFourPreview()
+                    ? 4
+                    : lessonThreePreview()
+                      ? 3
+                      : nextLessonPreview()
+                        ? 2
+                        : 1
+        }}</span
+        ><small>/ 8</small>
+      </div>
+      <div>
+        <strong>{{
+          lessonEightPreview()
+            ? 'Laboratoire final de A à Z'
+            : lessonSevenPreview()
+              ? 'Compléter le bloc Transformer'
+              : lessonSixPreview()
+                ? 'Comprendre l’attention'
+                : lessonFivePreview()
+                  ? 'Embeddings et contexte'
+                  : lessonFourPreview()
+                    ? 'Prédire du langage'
+                    : lessonThreePreview()
+                      ? 'Assembler un réseau'
+                      : nextLessonPreview()
+                        ? 'Du modèle au neurone'
+                        : 'Comprendre l’apprentissage'
+        }}</strong
+        ><span>{{ nextLessonPreview() ? 'En cours' : 'Point de départ' }}</span>
+      </div>
+    </div>
+
+    <nav aria-label="Parcours pédagogique">
+      <p>Parcours</p>
+      <a
+        href="#lesson"
+        [class.active]="!nextLessonPreview()"
+        [class.completed]="lessonFinished()"
+        (click)="navigateToLesson(1); $event.preventDefault()"
+        ><span>{{ lessonFinished() ? '✓' : '01' }}</span>
+        <div>
+          Comment apprend un modèle ?<small>{{ lessonFinished() ? 'Terminé' : 'En cours' }}</small>
+        </div></a
+      >
+      <a
+        href="#neurons"
+        [class.active]="nextLessonPreview() && !lessonThreePreview()"
+        [class.completed]="lessonTwoFinished()"
+        [class.locked]="!lessonFinished()"
+        (click)="navigateToLesson(2); $event.preventDefault()"
+        ><span>{{ lessonTwoFinished() ? '✓' : '02' }}</span>
+        <div>
+          Du modèle au neurone<small>{{
+            lessonTwoFinished() ? 'Terminé' : lessonFinished() ? 'Déverrouillé' : 'À venir'
+          }}</small>
+        </div></a
+      >
+      <a
+        href="#networks"
+        [class.active]="lessonThreePreview() && !lessonFourPreview()"
+        [class.completed]="lessonThreeFinished()"
+        [class.locked]="!lessonTwoFinished()"
+        (click)="navigateToLesson(3); $event.preventDefault()"
+        ><span>{{ lessonThreeFinished() ? '✓' : '03' }}</span>
+        <div>
+          Assembler un réseau<small>{{
+            lessonThreeFinished() ? 'Terminé' : lessonTwoFinished() ? 'Déverrouillé' : 'À venir'
+          }}</small>
+        </div></a
+      >
+      <a
+        href="#language"
+        [class.active]="lessonFourPreview() && !lessonFivePreview()"
+        [class.completed]="lessonFourFinished()"
+        [class.locked]="!lessonThreeFinished()"
+        (click)="navigateToLesson(4); $event.preventDefault()"
+        ><span>{{ lessonFourFinished() ? '✓' : '04' }}</span>
+        <div>
+          Prédire du langage<small>{{
+            lessonFourFinished() ? 'Terminé' : lessonThreeFinished() ? 'Déverrouillé' : 'À venir'
+          }}</small>
+        </div></a
+      >
+      <a
+        href="#embeddings"
+        [class.active]="lessonFivePreview() && !lessonSixPreview()"
+        [class.completed]="lessonFiveFinished()"
+        [class.locked]="!lessonFourFinished()"
+        (click)="navigateToLesson(5); $event.preventDefault()"
+        ><span>{{ lessonFiveFinished() ? '✓' : '05' }}</span>
+        <div>
+          Embeddings et contexte<small>{{
+            lessonFiveFinished() ? 'Terminé' : lessonFourFinished() ? 'Déverrouillé' : 'À venir'
+          }}</small>
+        </div></a
+      >
+      <a
+        href="#attention"
+        [class.active]="lessonSixPreview() && !lessonSevenPreview()"
+        [class.completed]="lessonSixFinished()"
+        [class.locked]="!lessonFiveFinished()"
+        (click)="navigateToLesson(6); $event.preventDefault()"
+        ><span>{{ lessonSixFinished() ? '✓' : '06' }}</span>
+        <div>
+          Comprendre l’attention<small>{{
+            lessonSixFinished() ? 'Terminé' : lessonFiveFinished() ? 'Déverrouillé' : 'À venir'
+          }}</small>
+        </div></a
+      >
+      <a
+        href="#transformer"
+        [class.active]="lessonSevenPreview() && !lessonEightPreview()"
+        [class.completed]="lessonSevenFinished()"
+        [class.locked]="!lessonSixFinished()"
+        (click)="navigateToLesson(7); $event.preventDefault()"
+        ><span>{{ lessonSevenFinished() ? '✓' : '07' }}</span>
+        <div>
+          Compléter le bloc Transformer<small>{{
+            lessonSevenFinished() ? 'Terminé' : lessonSixFinished() ? 'Déverrouillé' : 'À venir'
+          }}</small>
+        </div></a
+      >
+      <a
+        href="#capstone"
+        [class.active]="lessonEightPreview()"
+        [class.completed]="lessonEightFinished()"
+        [class.locked]="!lessonSevenFinished()"
+        (click)="navigateToLesson(8); $event.preventDefault()"
+        ><span>{{ lessonEightFinished() ? '✓' : '08' }}</span>
+        <div>
+          Laboratoire final de A à Z<small>{{
+            lessonEightFinished() ? 'Terminé' : lessonSevenFinished() ? 'Déverrouillé' : 'À venir'
+          }}</small>
+        </div></a
+      >
+    </nav>
+
+    <div class="sidebar-note">
+      <span>Fil conducteur</span>
+      <p>Un LLM est immense, mais il apprend avec la même boucle que notre modèle miniature.</p>
+      <small>● Progression enregistrée sur cet appareil</small>
+    </div>
+  </aside>
+
+  <main id="lesson">
+    @if (previewMode) {<p role="status">Aperçu de développement isolé · aucune modification de votre progression sauvegardée.</p>}
+    <app-course-compass [lesson]="lessonEightPreview() ? 8 : lessonSevenPreview() ? 7 : lessonSixPreview() ? 6 : lessonFivePreview() ? 5 : lessonFourPreview() ? 4 : lessonThreePreview() ? 3 : nextLessonPreview() ? 2 : 1" />
+    @if (lessonEightPreview()) {
+      @if (lessonEightFinished()) {<section class="course-finished" role="status"><h2>Laboratoire terminé</h2><p>Votre progression est conservée. Vous pouvez reprendre les expériences sans tout recommencer. Pour vérifier votre compréhension, essayez d’expliquer sans le support : ce que les données ont modifié, ce que le contexte change à l’inférence, et pourquoi une réussite sur ce test ne prouve pas une compréhension générale.</p></section>}
+      @defer (when lessonEightPreview()) {
+        <app-lesson-eight (completed)="completeLessonEight()"></app-lesson-eight>
+      }
+    } @else if (lessonSevenPreview()) {
+      @defer (when lessonSevenPreview()) {
+        <app-lesson-seven (completed)="completeLessonSeven()"></app-lesson-seven>
+      }
+    } @else if (lessonSixPreview()) {
+      @defer (when lessonSixPreview()) {
+        <app-lesson-six (completed)="completeLessonSix()"></app-lesson-six>
+      }
+    } @else if (lessonFivePreview()) {
+      @defer (when lessonFivePreview()) {
+        <app-lesson-five (completed)="completeLessonFive()"></app-lesson-five>
+      }
+    } @else if (lessonFourPreview()) {
+      <app-lesson-four (completed)="completeLessonFour()"></app-lesson-four>
+    } @else if (lessonThreePreview()) {
+      <app-lesson-three (completed)="completeLessonThree()"></app-lesson-three>
+    } @else if (nextLessonPreview()) {
+      <app-lesson-two (completed)="completeLessonTwo()"></app-lesson-two>
+    } @else if (lessonFinished() && !reviewingLessonOne()) {
+      <section class="completion-screen">
+        <span class="breadcrumb">Leçon 1 · Terminée</span>
+        <div class="completion-card">
+          <div class="completion-mark">✓</div>
+          <div class="completion-copy">
+            <span>Première idée fondamentale acquise</span>
+            <h1>Tu viens de faire<br /><em>apprendre un modèle.</em></h1>
+            <p>
+              Il n’a ni réfléchi ni mémorisé une réponse. Il a mesuré son erreur, calculé comment
+              ses paramètres l’influençaient, puis les a légèrement corrigés. Répéter cette boucle
+              constitue l’entraînement.
+            </p>
+            <div class="recap-grid">
+              <article>
+                <b>1</b><strong>Prédire</strong
+                ><span>Produire une réponse avec les paramètres actuels.</span>
+              </article>
+              <article>
+                <b>2</b><strong>Mesurer</strong
+                ><span>Comparer cette réponse à la réalité avec une loss.</span>
+              </article>
+              <article>
+                <b>3</b><strong>Corriger</strong
+                ><span>Utiliser les gradients pour modifier les paramètres.</span>
+              </article>
+            </div>
+            <div class="llm-recap">
+              <span>Connexion LLM</span>
+              <p>
+                Lors de son entraînement, un LLM répète cette boucle sur d’immenses quantités de
+                texte pour ajuster des milliards de paramètres.
+              </p>
+            </div>
+            <div class="completion-actions">
+              <button type="button" class="replay-button" (click)="replayLessonOne()">
+                Rejouer l’expérience</button
+              ><button type="button" (click)="continueToNextLesson()">
+                Passer à la leçon 2 <span>→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    } @else if (!lessonStarted()) {
+      <section class="lesson-intro">
+        <span class="breadcrumb">Leçon 1 · Aucun prérequis en machine learning</span>
+        <div class="intro-grid">
+          <div class="intro-copy">
+            <h1>Comment une machine<br /><em>peut-elle apprendre ?</em></h1>
+            <p class="lead">
+              Avant les neurones, les gradients et les Transformers, répondons à une seule question
+              : que fait réellement un programme lorsqu’on dit qu’il « apprend » ?
+            </p>
+
+            <div class="learning-goals">
+              <span>À la fin de cette leçon, tu sauras</span>
+              <ul>
+                <li><i>1</i> distinguer une donnée d’un paramètre ;</li>
+                <li><i>2</i> expliquer prédiction, erreur et loss ;</li>
+                <li><i>3</i> décrire « apprendre » sans métaphore.</li>
+              </ul>
+            </div>
+          </div>
+
+          <aside class="llm-connection">
+            <span>Pourquoi commencer ici ?</span>
+            <h2>C’est déjà le cœur d’un LLM.</h2>
+            <p>
+              Un LLM reçoit du texte, prédit le token suivant, compare sa prédiction au vrai token
+              et corrige ses paramètres.
+            </p>
+            <div class="mini-flow">
+              <b>entrée</b><i>→</i><b>prédiction</b><i>→</i><b>erreur</b><i>→</i><b>correction</b>
+            </div>
+            <small
+              >Notre exemple aura 2 paramètres. Un LLM en possède des milliards, mais cette boucle
+              reste la même.</small
+            >
+          </aside>
+        </div>
+
+        <section class="scenario-card">
+          <div class="scenario-heading">
+            <span>Notre mission</span>
+            <h2>Prédire une note à partir du temps d’étude</h2>
+            <p>
+              On dispose d’un élève qui a étudié <strong>2 heures</strong> et obtenu
+              <strong>60 points</strong>. Construisons un programme capable de se rapprocher de
+              cette réalité.
+            </p>
+          </div>
+
+          <div class="concept-row">
+            <article>
+              <span class="concept-type data">Donnée d’entrée</span>
+              <strong>2 heures</strong>
+              <code>x</code>
+              <p>Une information fournie au modèle. Elle décrit le cas étudié.</p>
+            </article>
+            <span class="operator">×</span>
+            <article>
+              <span class="concept-type parameter">Paramètre</span>
+              <strong>10 points / heure</strong>
+              <code>w</code>
+              <p>Une hypothèse interne que le modèle pourra modifier pour apprendre.</p>
+            </article>
+            <span class="operator">+</span>
+            <article>
+              <span class="concept-type parameter">Paramètre</span>
+              <strong>20 points de départ</strong>
+              <code>b</code>
+              <p>Une seconde hypothèse : la note estimée avant même d’étudier.</p>
+            </article>
+            <span class="operator">=</span>
+            <article class="prediction-concept">
+              <span class="concept-type prediction">Prédiction</span>
+              <strong>40 points</strong>
+              <code>ŷ</code>
+              <p>Ce que le modèle pense avec ses paramètres actuels. La réalité vaut 60.</p>
+            </article>
+          </div>
+
+          <div class="first-question">
+            <div>
+              <span>Question à garder en tête</span
+              ><strong
+                >Comment le programme peut-il découvrir tout seul qu’il doit prédire plus haut
+                ?</strong
+              >
+            </div>
+            <button type="button" (click)="startLesson()">
+              Commencer l’expérience <span>→</span>
+            </button>
+          </div>
+        </section>
+      </section>
+    } @else {
+      <header>
+        <div>
+          <span class="breadcrumb">Leçon 1 / Expérience guidée</span>
+          <h1>Faire apprendre <em>notre premier modèle.</em></h1>
+          <p>
+            Contexte : un élève a étudié {{ input() }} heures et obtenu {{ target() }} points. Notre
+            modèle doit ajuster ses deux paramètres pour s’en rapprocher.
+          </p>
+        </div>
+        <div class="header-actions">
+          <button class="ghost-button" type="button" (click)="lessonStarted.set(false)">
+            ← Revoir l’introduction
+          </button>
+          <button class="ghost-button" type="button" (click)="reset()">↻ Réinitialiser</button>
+        </div>
+      </header>
+
+      <section class="workspace" id="experiment">
+        <div class="lab-panel">
+          <div class="panel-heading">
+            <div>
+              <span>Le calcul du modèle</span
+              ><strong>note prédite = heures × points/heure + niveau de départ</strong>
+            </div>
+            <div class="legend">
+              <span><i class="value-dot"></i> valeur calculée</span
+              ><span><i class="grad-dot"></i> direction de correction</span>
+            </div>
+          </div>
+
+          <div class="graph-wrap">
+            <svg
+              viewBox="0 0 1080 410"
+              role="img"
+              aria-label="Calcul guidé de la note prédite et de son erreur"
+            >
+              <defs>
+                <marker
+                  id="arrow"
+                  viewBox="0 0 10 10"
+                  refX="8"
+                  refY="5"
+                  markerWidth="6"
+                  markerHeight="6"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 0 L 10 5 L 0 10 z"></path>
+                </marker>
+              </defs>
+
+              @for (edge of edges; track edge.from + edge.to) {
+                <line
+                  [attr.x1]="view(edge.from).x + 82"
+                  [attr.y1]="view(edge.from).y + 38"
+                  [attr.x2]="view(edge.to).x"
+                  [attr.y2]="view(edge.to).y + 38"
+                  [class.visible]="step() >= edge.revealAt"
+                ></line>
+              }
+
+              @for (item of nodeViews; track item.id) {
+                <g
+                  class="graph-node"
+                  tabindex="0"
+                  role="button"
+                  [class.visible]="step() >= item.revealAt"
+                  [class.selected]="selectedNodeId() === item.id"
+                  [class.parameter]="item.id === 'w' || item.id === 'b'"
+                  [attr.transform]="'translate(' + item.x + ' ' + item.y + ')'"
+                  (click)="selectedNodeId.set(item.id)"
+                  (keydown.enter)="selectedNodeId.set(item.id)"
+                >
+                  <rect width="172" height="76" rx="12"></rect>
+                  <text class="node-label" x="14" y="23">{{ node(item.id).label }}</text>
+                  <text class="node-value" x="14" y="54">
+                    {{ node(item.id).data | number: '1.0-3' }}
+                  </text>
+                  @if (step() >= item.gradientAt) {
+                    <text class="node-grad" x="158" y="54" text-anchor="end">
+                      ∇ {{ node(item.id).grad | number: '1.0-2' }}
+                    </text>
+                  }
+                </g>
+              }
+            </svg>
+          </div>
+
+          <div class="step-controller">
+            <button
+              type="button"
+              aria-label="Étape précédente"
+              (click)="previous()"
+              [disabled]="step() === 0"
+            >
+              ←
+            </button>
+            <div class="step-copy">
+              <span>{{ currentStep().eyebrow }}</span>
+              <strong>{{ currentStep().title }}</strong>
+              <p>{{ currentStep().explanation }}</p>
+            </div>
+            <code>{{ currentStep().formula }}</code>
+            <div class="step-actions">
+              <span>{{ step() + 1 }} / {{ steps.length }}</span>
+              <button
+                type="button"
+                aria-label="Étape suivante"
+                (click)="next()"
+                [disabled]="step() === steps.length - 1"
+              >
+                →
+              </button>
+            </div>
+          </div>
+
+          <div class="observation-prompt">
+            <span>👁 À observer</span>
+            <p>{{ currentStep().observation }}</p>
+          </div>
+        </div>
+
+        <aside class="controls-panel">
+          <div class="control-header">
+            <span>Les nombres de l’expérience</span><small>Modifiables</small>
+          </div>
+
+          <div class="control-group data-group">
+            <span class="group-label">Données — décrivent l’exemple</span>
+            <label>
+              <span
+                >Temps d’étude <code>x</code
+                ><output>{{ input() | number: '1.0-1' }} h</output></span
+              >
+              <small>Ce que le modèle reçoit.</small>
+              <input
+                aria-label="Temps d’étude"
+                type="range"
+                min="0"
+                max="5"
+                step="0.5"
+                [value]="input()"
+                (input)="update('input', $any($event.target).value)"
+              />
+            </label>
+            <label>
+              <span
+                >Note réelle <code>cible</code
+                ><output>{{ target() | number: '1.0-0' }}</output></span
+              >
+              <small>La bonne réponse utilisée pendant l’apprentissage.</small>
+              <input
+                aria-label="Note réelle"
+                type="range"
+                min="0"
+                max="100"
+                step="5"
+                [value]="target()"
+                (input)="update('target', $any($event.target).value)"
+              />
+            </label>
+          </div>
+
+          <div class="control-group parameter-group">
+            <span class="group-label">Paramètres — ce que le modèle apprend</span>
+            <label>
+              <span
+                >Points par heure <code>w</code
+                ><output>{{ weight() | number: '1.0-2' }}</output></span
+              >
+              <small>L’importance accordée à une heure d’étude.</small>
+              <input
+                aria-label="Points par heure"
+                type="range"
+                min="0"
+                max="25"
+                step="0.5"
+                [value]="weight()"
+                (input)="update('weight', $any($event.target).value)"
+              />
+            </label>
+            <label>
+              <span
+                >Niveau de départ <code>b</code
+                ><output>{{ bias() | number: '1.0-2' }}</output></span
+              >
+              <small>La prédiction lorsque l’entrée vaut zéro.</small>
+              <input
+                aria-label="Niveau de départ"
+                type="range"
+                min="0"
+                max="50"
+                step="1"
+                [value]="bias()"
+                (input)="update('bias', $any($event.target).value)"
+              />
+            </label>
+          </div>
+
+          <div class="result-comparison">
+            <div>
+              <span>Prédiction</span><strong>{{ prediction() | number: '1.1-2' }}</strong>
+            </div>
+            <span class="versus">vs</span>
+            <div>
+              <span>Réalité</span><strong>{{ target() | number: '1.0-0' }}</strong>
+            </div>
+          </div>
+          <div class="loss-card">
+            <span>Loss — distance à réduire</span><strong>{{ loss() | number: '1.2-2' }}</strong
+            ><small>Objectif de l’apprentissage : se rapprocher de 0.</small>
+          </div>
+
+          <label class="learning-rate">
+            <span
+              >Taille du pas <code>η</code
+              ><output>{{ learningRate() | number: '1.3-3' }}</output></span
+            >
+            <small>À quel point le modèle corrige ses paramètres à chaque essai.</small>
+            <input
+              aria-label="Taille du pas"
+              type="range"
+              min="0.001"
+              max="0.02"
+              step="0.001"
+              [value]="learningRate()"
+              (input)="update('learningRate', $any($event.target).value)"
+            />
+          </label>
+          <button
+            class="train-button"
+            type="button"
+            (click)="trainOnce()"
+            [disabled]="step() < 9 || lessonComplete()"
+          >
+            Faire apprendre le modèle <span>↘</span>
+          </button>
+          @if (step() < 9) {
+            <p class="button-help">
+              Parcours les étapes pour comprendre la correction avant de l’appliquer.
+            </p>
+          }
+
+          @if (lastUpdate(); as update) {
+            <div class="learning-result">
+              <span>✓ Le modèle a appris un peu</span>
+              <p>
+                Le poids est passé de <strong>{{ update.oldWeight | number: '1.1-2' }}</strong> à
+                <strong>{{ update.newWeight | number: '1.1-2' }}</strong
+                >.
+              </p>
+              <p>
+                La loss est passée de <strong>{{ update.before | number: '1.1-2' }}</strong> à
+                <strong>{{ update.after | number: '1.1-2' }}</strong
+                >.
+              </p>
+            </div>
+          }
+
+          @if (step() === 9 && !lessonComplete()) {
+            <div class="convergence-actions">
+              <button type="button" (click)="trainMany()">Répéter 10 pas</button>
+              <span>Encore {{ loss() | number: '1.2-2' }} de loss à réduire.</span>
+            </div>
+          }
+
+          @if (lessonComplete()) {
+            <div class="lesson-unlocked">
+              <span>✓ Objectif atteint</span>
+              <strong>La prédiction est suffisamment proche de la réalité.</strong>
+              <p>
+                Une égalité mathématique parfaite n’est pas nécessaire : une loss inférieure à 0,01
+                valide l’expérience.
+              </p>
+              <button type="button" (click)="finishLesson()">
+                Terminer la leçon <span>→</span>
+              </button>
+            </div>
+          }
+
+          <details class="inspector">
+            <summary>Sous le capot — nœud sélectionné</summary>
+            <div>
+              <strong>{{ selectedNode().label }}</strong
+              ><code>{{ selectedNode().operation }}</code>
+            </div>
+            <dl>
+              <div>
+                <dt>Valeur</dt>
+                <dd>{{ selectedNode().data | number: '1.3-3' }}</dd>
+              </div>
+              <div>
+                <dt>Gradient</dt>
+                <dd>{{ selectedNode().grad | number: '1.3-3' }}</dd>
+              </div>
+            </dl>
+          </details>
+        </aside>
+      </section>
+    }
+  </main>
+</div>

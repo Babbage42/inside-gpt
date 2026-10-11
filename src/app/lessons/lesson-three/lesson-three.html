@@ -1,0 +1,96 @@
+@if (!started()) {
+  <section class="lesson-intro">
+    <span class="breadcrumb">Leçon 3 · Assembler un réseau</span>
+    <div class="intro-grid">
+      <div>
+        <span class="chapter">03</span>
+        <h1>Pourquoi un seul neurone<br /><em>ne suffit-il pas ?</em></h1>
+        <p>Un neurone sait prendre une décision simple. Nous allons lui confier une règle qu’il est mathématiquement incapable de représenter — puis résoudre le problème en créant notre premier réseau.</p>
+      </div>
+      <aside class="switch-demo">
+        <span>Le problème des deux interrupteurs</span>
+        <div class="bulb on">☀</div>
+        <p>La lampe est allumée lorsque <strong>un seul</strong> interrupteur est actif.</p>
+        <div class="tiny-switches"><i class="active">A · ON</i><i>B · OFF</i></div>
+      </aside>
+    </div>
+
+    <div class="truth-intro">
+      <div class="truth-heading"><span>Les quatre exemples à apprendre</span><strong>La règle XOR</strong><p>XOR signifie « l’un ou l’autre, mais pas les deux ».</p></div>
+      @for (item of cases; track item.label) {
+        <article [class.on]="item.target === 1"><div><i [class.active]="item.a">A {{ item.a }}</i><i [class.active]="item.b">B {{ item.b }}</i></div><strong>{{ item.target ? 'Allumée' : 'Éteinte' }}</strong><small>{{ item.label }}</small></article>
+      }
+    </div>
+
+    <div class="start-row"><div><span>Question directrice</span><strong>Pourquoi aucun réglage d’un neurone unique ne peut-il apprendre ces quatre exemples ?</strong></div><button type="button" (click)="started.set(true)">Lancer le défi <span>→</span></button></div>
+  </section>
+} @else {
+  <section class="lesson-lab">
+    <header><div><span class="breadcrumb">Leçon 3 / Expérience guidée</span><h1>Du neurone <em>au réseau.</em></h1><p>Essaie d’abord de résoudre la règle avec un neurone, puis observe ce que change une couche intermédiaire.</p></div><button type="button" (click)="started.set(false)">← Revoir le contexte</button></header>
+
+    <div class="workspace">
+      <div class="main-area">
+        <div class="case-picker">
+          <div><span>Cas actuellement suivi</span><strong>{{ selectedCase().label }}</strong></div>
+          @for (item of cases; track item.label; let index = $index) {
+            <button type="button" [class.selected]="selectedCaseIndex() === index" [class.target-on]="item.target" (click)="selectedCaseIndex.set(index)"><span>A{{ item.a }} · B{{ item.b }}</span><strong>{{ item.target ? 'ON' : 'OFF' }}</strong></button>
+          }
+        </div>
+
+        @if (step() < 4) {
+          <section class="single-neuron">
+            <div class="section-title"><div><span>Tentative 1</span><strong>Résoudre avec un seul neurone</strong></div><div class="accuracy" [class.perfect]="singleAccuracy() === 4"><b>{{ singleAccuracy() }}/4</b><span>cas corrects</span></div></div>
+            <div class="single-flow">
+              <div class="inputs"><span>Entrées</span><b>A = {{ selectedCase().a }}</b><b>B = {{ selectedCase().b }}</b></div><i>→</i>
+              <div class="one-neuron"><span>Neurone unique</span><code>A×w₁ + B×w₂ + b</code><strong>score = {{ singleScore() | number: '1.1-2' }}</strong><small>activation seuil → {{ singlePrediction() }}</small></div><i>→</i>
+              <div class="lamp-result" [class.on]="singlePrediction()"><span>Prédiction</span><strong>{{ singlePrediction() ? 'Allumée' : 'Éteinte' }}</strong><small [class.wrong]="singlePrediction() !== selectedCase().target">{{ singlePrediction() === selectedCase().target ? '✓ correcte' : '✕ incorrecte' }}</small></div>
+            </div>
+
+            <div class="truth-table"><div class="table-head"><span>A</span><span>B</span><span>Attendu</span><span>Prédit</span><span>Résultat</span></div>@for (item of singleResults(); track item.label) {<div><span>{{ item.a }}</span><span>{{ item.b }}</span><span>{{ item.target }}</span><span>{{ item.prediction }}</span><strong [class.ok]="item.prediction === item.target">{{ item.prediction === item.target ? 'juste' : 'faux' }}</strong></div>}</div>
+
+            @if (step() >= 2) {
+              <div class="decision-plane">
+                <div class="plane-copy"><span>Vue géométrique</span><strong>Une seule frontière droite</strong><p>Les points verts doivent être séparés des blancs. Mais ils se trouvent dans des coins opposés.</p></div>
+                <div class="point-grid"><i class="axis-y">B</i><i class="axis-x">A</i><button class="p00" [class.on]="cases[0].target">00</button><button class="p10" [class.on]="cases[1].target">10</button><button class="p01" [class.on]="cases[2].target">01</button><button class="p11" [class.on]="cases[3].target">11</button><span class="boundary"></span></div>
+              </div>
+            }
+          </section>
+        } @else {
+          <section class="network-solution">
+            <div class="representation-callout"><span>Pourquoi ces poids et ces biais ?</span><p>A et B valent chacun 0 ou 1, donc A + B vaut 0, 1 ou 2. Les poids [1, 1] servent simplement à compter les interrupteurs actifs. Pour détecter « au moins un », nous plaçons la coupure entre 0 et 1 : soustraire 0,5 donne −0,5, +0,5 ou +1,5, puis le seuil renvoie 1 si le résultat est positif. Pour détecter « les deux », soustraire 1,5 place la coupure entre 1 et 2. Ces milieux sont pratiques, pas uniques.</p><p>La sortie soustrait « les deux » à « au moins un » : 0 − 0 = 0, 1 − 0 = 1, 1 − 1 = 0. Le dernier biais −0,5 reconvertit ce résultat en décision par le même seuil. <strong>Nous avons construit ces paramètres à la main pour montrer qu’un réseau peut résoudre XOR ; nous ne prétendons pas qu’ils ont été appris.</strong></p></div>
+            <div class="section-title"><div><span>Solution</span><strong>Décomposer avec une couche cachée</strong></div><div class="accuracy perfect"><b>4/4</b><span>cas corrects</span></div></div>
+            <div class="network-flow">
+              <div class="network-inputs"><span>Entrées</span><b>A = {{ selectedCase().a }}</b><b>B = {{ selectedCase().b }}</b></div><i>→</i>
+              <div class="hidden-layer"><span>Couche cachée</span><article [class.active]="anyActive()" [class.unrevealed]="step() < 4"><small>Neurone 1 · poids [1, 1] · biais −0,5</small><strong>Au moins un ?</strong><code>seuil(A + B − 0,5)</code><b>{{ anyActive() }}</b></article><article [class.active]="bothActive()" [class.unrevealed]="step() < 5"><small>Neurone 2 · poids [1, 1] · biais −1,5</small><strong>Les deux ?</strong><code>seuil(A + B − 1,5)</code><b>{{ bothActive() }}</b></article></div><i>→</i>
+              <div class="output-neuron" [class.active]="networkPrediction()" [class.unrevealed]="step() < 7"><span>Neurone de sortie</span><strong>Au moins un<br />SAUF les deux</strong><code>1×{{ anyActive() }} − 1×{{ bothActive() }} − 0,5</code><b>{{ networkPrediction() }}</b></div><i>→</i>
+              <div class="final-lamp" [class.on]="networkPrediction()"><span>Lampe</span><strong>{{ networkPrediction() ? 'Allumée' : 'Éteinte' }}</strong><small>✓ correcte</small></div>
+            </div>
+
+            @if (step() >= 6) {
+              <div class="hidden-truth-table"><div><span>A</span><span>B</span><span>Neurone 1<br /><small>au moins un</small></span><span>Neurone 2<br /><small>les deux</small></span><span>Sortie<br /><small>N1 − N2</small></span></div>@for (row of networkRows(); track row.label) {<button type="button" [class.selected]="selectedCase().label === row.label" (click)="selectedCaseIndex.set($index)"><span>{{ row.a }}</span><span>{{ row.b }}</span><strong>{{ row.any }}</strong><strong>{{ row.both }}</strong><b>{{ row.output }}</b></button>}</div>
+              <div class="representation-callout"><span>L’idée centrale</span><p>Regarde les deux colonnes centrales : la couche cachée ne copie pas A et B. Elle fabrique deux nouvelles descriptions — <strong>« au moins un »</strong> et <strong>« les deux »</strong>. La sortie devient alors une simple soustraction.</p></div>
+            }
+          </section>
+        }
+
+        <div class="guide"><button type="button" aria-label="Étape précédente de la leçon 3" (click)="previous()" [disabled]="step() === 0">←</button><div><span>{{ currentStep().kicker }}</span><strong>{{ currentStep().title }}</strong><p>{{ currentStep().text }}</p></div><aside><span>Ce qu’il faut retenir</span><p>{{ currentStep().takeaway }}</p></aside><div class="guide-nav"><small>{{ step() + 1 }}/{{ steps.length }}</small><button type="button" aria-label="Étape suivante de la leçon 3" (click)="next()" [disabled]="step() === steps.length - 1">→</button></div></div>
+
+        @if (step() === 9) {
+          <section class="quiz"><span>Validation</span><h2>Si l’on empile dix couches faites uniquement d’additions et de multiplications, sans aucune activation non linéaire, qu’obtient-on ?</h2><div class="answers"><button type="button" [class.selected]="quizAnswer() === 'more'" (click)="answer('more')">Un modèle forcément plus expressif</button><button type="button" [class.selected]="quizAnswer() === 'same'" (click)="answer('same')">L’équivalent d’une seule transformation linéaire</button><button type="button" [class.selected]="quizAnswer() === 'random'" (click)="answer('random')">Un résultat imprévisible</button></div>
+            @if (quizAnswer() && !quizCorrect()) {<p class="wrong-answer">Regarde si plusieurs expressions linéaires composées peuvent être développées et regroupées en une seule expression.</p>}
+            @if (quizCorrect()) {<div class="success"><span>✓ Exact</span><p>La composition de transformations linéaires reste linéaire. Les activations sont ce qui donne aux couches successives une capacité réellement nouvelle.</p><button type="button" (click)="completed.emit()">Terminer et passer à la leçon 4 <span>→</span></button></div>}
+          </section>
+        }
+      </div>
+
+      <aside class="controls">
+        <span class="controls-title">Réglages du neurone unique</span><p>Essaie d’obtenir quatre réponses justes. Le laboratoire te laissera constater la limite.</p>
+        <label><span>Poids de A <code>w₁</code><output>{{ weightA() | number: '1.1-1' }}</output></span><input aria-label="Poids de A" type="range" min="-3" max="3" step="0.5" [value]="weightA()" (input)="update('weightA', $any($event.target).value)" /></label>
+        <label><span>Poids de B <code>w₂</code><output>{{ weightB() | number: '1.1-1' }}</output></span><input aria-label="Poids de B" type="range" min="-3" max="3" step="0.5" [value]="weightB()" (input)="update('weightB', $any($event.target).value)" /></label>
+        <label><span>Biais <code>b</code><output>{{ bias() | number: '1.1-1' }}</output></span><input aria-label="Biais du neurone XOR" type="range" min="-3" max="3" step="0.5" [value]="bias()" (input)="update('bias', $any($event.target).value)" /></label>
+        <div class="challenge-result"><span>Meilleur résultat actuel</span><strong>{{ singleAccuracy() }}/4</strong><p>@if (singleAccuracy() === 3) {Tu as atteint le maximum possible pour un neurone unique.}@else {Continue à chercher — trois cas peuvent être résolus, jamais quatre.}</p></div>
+        <div class="definition"><span>Rôle d’un neurone</span><strong>Détecter une condition simple</strong><p>Le réseau devient puissant en apprenant plusieurs détecteurs et en recomposant leurs sorties couche après couche.</p></div>
+      </aside>
+    </div>
+  </section>
+}

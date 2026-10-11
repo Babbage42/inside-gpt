@@ -1,0 +1,28 @@
+<div class="v4">
+  <header class="topbar">
+    <a class="brand" href="/v4"><span>∇</span> GradientLab</a>
+    <nav aria-label="Chapitres">
+      @for (name of chapters; track name) {
+        <button type="button" [class.on]="chapter() === $index" [class.past]="$index < chapter()" [attr.aria-current]="chapter() === $index ? 'step' : null" (click)="go($index)"><small>{{ $index + 1 }}</small><span>{{ name }}</span></button>
+      }
+    </nav>
+  </header>
+
+  <main>
+    @switch (chapter()) {
+      @case (0) { <v4-ch-game /> }
+      @case (1) { <v4-ch-count /> }
+      @case (2) { <v4-ch-map /> }
+      @case (3) { <v4-ch-descent /> }
+      @case (4) { <v4-ch-attention /> }
+      @case (5) { <v4-ch-scale /> }
+      @case (6) { <v4-ch-inside (jump)="go($event)" /> }
+    }
+  </main>
+
+  <footer class="pager">
+    <button type="button" [disabled]="chapter() === 0" (click)="go(chapter() - 1)">← Chapitre précédent</button>
+    @if (next()) { <button type="button" class="primary" (click)="go(chapter() + 1)">Chapitre suivant · {{ next() }} →</button> }
+    @else { <button type="button" class="primary" (click)="go(0)">Revenir au début</button> }
+  </footer>
+</div>

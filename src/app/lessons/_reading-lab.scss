@@ -1,0 +1,18 @@
+.lesson-stage { max-width: 1000px; }
+.lesson-stage p, .lesson-stage li, .corpus-reference p { font-size: 16px; line-height: 1.85; }
+.lesson-stage h3 { font-size: 19px; line-height: 1.4; margin-top: 28px; }
+.lesson-stage .chapter-copy p { max-width: 880px; font-size: 16px; }
+.lesson-stage .equation { overflow-wrap: anywhere; line-height: 2; text-align: left; font-size: 15px; padding: 20px; font-variant-numeric: tabular-nums; }
+.lesson-stage table, .corpus-reference table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0; font-variant-numeric: tabular-nums; }
+.lesson-stage th, .lesson-stage td, .corpus-reference th, .corpus-reference td { text-align: left; border-bottom: 1px solid #d6dfd3; padding: 12px 9px; line-height: 1.6; }
+.lesson-stage thead, .lesson-stage tfoot { background: #e5f2e8; }
+.lesson-stage label { display: block; margin: 22px 0; line-height: 1.8; }
+.lesson-stage select { padding: 10px; border: 1px solid #aebdaf; border-radius: 8px; font: inherit; color: #173f35; background: white; }
+.lesson-stage .controls { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
+.lesson-stage .controls button { border: 1px solid #aebdaf; border-radius: 9px; padding: 12px 16px; background: white; color: #173f35; cursor: pointer; font: inherit; }
+.lesson-stage .controls button[aria-pressed='true'] { background: #173f35; color: white; }
+.corpus-reference, .mission-check { border: 1px solid #becdbf; padding: 20px; border-radius: 14px; margin: 24px 0; }
+.corpus-reference summary { cursor: pointer; font-weight: 600; }
+button:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #b77919; outline-offset: 3px; }
+.lesson-stage caption { text-align: left; line-height: 1.6; font-weight: 600; }
+@media(max-width:650px) { .lesson-stage .equation { padding: 14px; font-size: 14px; } .lesson-stage table, .corpus-reference table { font-size: 12px; } .lesson-stage th, .lesson-stage td, .corpus-reference th, .corpus-reference td { padding: 8px 4px; } }

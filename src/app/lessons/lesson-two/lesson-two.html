@@ -1,0 +1,121 @@
+@if (!started()) {
+  <section class="lesson-two-intro">
+    <span class="breadcrumb">Leçon 2 · Du modèle au neurone</span>
+    <div class="intro-layout">
+      <div>
+        <span class="chapter-mark">02</span>
+        <h1>Comment un modèle<br /><em>prend-il une décision ?</em></h1>
+        <p>Notre premier modèle produisait un nombre. Nous allons maintenant lui demander de choisir entre deux catégories — et découvrir le composant fondamental des réseaux de neurones.</p>
+      </div>
+      <aside>
+        <span>Nouvelle mission</span>
+        <strong>Détecter un message suspect</strong>
+        <blockquote>« Cadeau GRATUIT ! Clique sur ces 2 liens pour le recevoir. »</blockquote>
+        <p>Le modèle devra répondre : <b>spam probable</b> ou <b>message normal</b>.</p>
+      </aside>
+    </div>
+
+    <div class="bridge-card">
+      <div><span>Ce que nous savons déjà</span><strong>entrée × poids + biais</strong><p>Une formule linéaire combine des informations avec des paramètres appris.</p></div>
+      <i>→</i>
+      <div><span>Le nouveau problème</span><strong>Comment obtenir une décision ?</strong><p>Un score quelconque doit devenir une valeur interprétable entre 0 et 1.</p></div>
+      <i>→</i>
+      <div><span>Ce que nous allons découvrir</span><strong>Le neurone</strong><p>Une combinaison linéaire suivie d’une fonction d’activation.</p></div>
+    </div>
+
+    <div class="lesson-start">
+      <div><span>Objectif</span><strong>Comprendre chaque partie d’un neurone et être capable d’expliquer pourquoi l’activation existe.</strong></div>
+      <button type="button" (click)="started.set(true)">Étudier le message <span>→</span></button>
+    </div>
+  </section>
+} @else {
+  <section class="lesson-two-lab">
+    <header>
+      <div><span class="breadcrumb">Leçon 2 / Expérience guidée</span><h1>À l’intérieur <em>d’un neurone.</em></h1><p>Transformons deux indices très simples en probabilité de spam.</p></div>
+      <button type="button" (click)="started.set(false)">← Revoir le contexte</button>
+    </header>
+
+    <div class="classifier-workspace">
+      <div class="classifier-main">
+        <div class="message-card">
+          <span>Message analysé</span>
+          <p>Cadeau <mark>GRATUIT</mark> ! Clique sur ces <mark>{{ linkCount() }} liens</mark> pour le recevoir.</p>
+        </div>
+
+        <div class="neuron-flow">
+          <section [class.muted]="step() < 1">
+            <span class="flow-label">1 · Entrées</span>
+            <div class="input-chip"><small>mot « gratuit »</small><strong>{{ containsFree() }}</strong><em>{{ containsFree() ? 'présent' : 'absent' }}</em></div>
+            <div class="input-chip"><small>nombre de liens</small><strong>{{ linkCount() }}</strong><em>liens observés</em></div>
+          </section>
+
+          <span class="flow-arrow">→</span>
+
+          <section [class.muted]="step() < 2">
+            <span class="flow-label">2 · Indices pondérés</span>
+            <div class="calculation"><span>{{ containsFree() }} × {{ wordWeight() }}</span><strong>{{ node('word-evidence').data | number: '1.1-2' }}</strong></div>
+            <div class="calculation"><span>{{ linkCount() }} × {{ linkWeight() }}</span><strong>{{ node('link-evidence').data | number: '1.1-2' }}</strong></div>
+          </section>
+
+          <span class="flow-arrow">→</span>
+
+          <section class="score-stage" [class.muted]="step() < 3">
+            <span class="flow-label">3 · Score brut</span>
+            <code>z = indices + biais</code>
+            <strong>{{ score() | number: '1.2-2' }}</strong>
+            <em>peut aller de −∞ à +∞</em>
+          </section>
+
+          <span class="flow-arrow">→</span>
+
+          <section class="activation-stage" [class.muted]="step() < 5">
+            <span class="flow-label">4 · Activation</span>
+            <code>sigmoid(z)</code>
+            <div class="probability-ring" [style.--probability]="probability() * 360 + 'deg'"><strong>{{ probability() * 100 | number: '1.0-0' }}%</strong></div>
+            <em>toujours entre 0 et 1</em>
+          </section>
+        </div>
+
+        <div class="decision-bar" [class.normal]="probability() < 0.5" [class.muted]="step() < 6">
+          <span>Décision avec un seuil à 50 %</span><strong>{{ prediction() }}</strong>
+        </div>
+
+        <div class="guided-step">
+          <button type="button" aria-label="Étape précédente de la leçon 2" (click)="previous()" [disabled]="step() === 0">←</button>
+          <div><span>{{ currentStep().kicker }}</span><strong>{{ currentStep().title }}</strong><p>{{ currentStep().text }}</p></div>
+          <div class="watch"><span>À observer</span><p>{{ currentStep().observation }}</p></div>
+          <div class="step-nav"><small>{{ step() + 1 }} / {{ steps.length }}</small><button type="button" aria-label="Étape suivante de la leçon 2" (click)="next()" [disabled]="step() === steps.length - 1">→</button></div>
+        </div>
+
+        @if (step() === 7) {
+          <section class="knowledge-check">
+            <span>Vérification de compréhension</span>
+            <h2>Si on retire le mot « gratuit » sans rien changer d’autre, que devient la probabilité de spam ?</h2>
+            <div class="answers">
+              <button type="button" [class.selected]="quizAnswer() === 'up'" (click)="answer('up')">Elle augmente</button>
+              <button type="button" [class.selected]="quizAnswer() === 'down'" (click)="answer('down')">Elle diminue</button>
+              <button type="button" [class.selected]="quizAnswer() === 'same'" (click)="answer('same')">Elle ne change pas</button>
+            </div>
+            @if (quizAnswer() && !quizCorrect()) { <p class="wrong">Pas tout à fait. Retirer cet indice enlève une contribution positive au score brut. Observe ensuite ce que sigmoid fait d’un score plus petit.</p> }
+            @if (quizCorrect()) {
+              <div class="correct"><span>✓ Exact</span><p>Le score diminue de {{ wordWeight() }}. Comme sigmoid est croissante, la probabilité diminue également.</p><button type="button" (click)="completed.emit()">Terminer et passer à la leçon 3 <span>→</span></button></div>
+            }
+          </section>
+        }
+      </div>
+
+      <aside class="classifier-controls">
+        <span class="control-title">Manipuler le message</span>
+        <div class="toggle-control"><div><strong>Mot « gratuit »</strong><small>Entrée binaire : absent = 0, présent = 1</small></div><button type="button" (click)="toggleWord()" [class.on]="containsFree() === 1">{{ containsFree() ? 'Présent' : 'Absent' }}</button></div>
+        <label><span>Nombre de liens <output>{{ linkCount() }}</output></span><small>Une entrée numérique observable.</small><input aria-label="Nombre de liens" type="range" min="0" max="5" step="1" [value]="linkCount()" (input)="update('links', $any($event.target).value)" /></label>
+
+        <div class="parameter-divider"><span>Paramètres du neurone</span><small>Ils seraient appris pendant l’entraînement.</small></div>
+        <label><span>Poids du mot <code>w₁</code><output>{{ wordWeight() | number: '1.1-1' }}</output></span><small>Force de cet indice dans la décision.</small><input aria-label="Poids du mot" type="range" min="-2" max="3" step="0.1" [value]="wordWeight()" (input)="update('wordWeight', $any($event.target).value)" /></label>
+        <label><span>Poids des liens <code>w₂</code><output>{{ linkWeight() | number: '1.1-1' }}</output></span><small>Contribution ajoutée par chaque lien.</small><input aria-label="Poids des liens" type="range" min="-1" max="2" step="0.1" [value]="linkWeight()" (input)="update('linkWeight', $any($event.target).value)" /></label>
+        <label><span>Biais <code>b</code><output>{{ bias() | number: '1.1-1' }}</output></span><small>La prudence du modèle avant de voir un indice.</small><input aria-label="Biais du classifieur" type="range" min="-4" max="2" step="0.1" [value]="bias()" (input)="update('bias', $any($event.target).value)" /></label>
+
+        <div class="neuron-definition"><span>Définition acquise</span><strong>neurone = somme pondérée + activation</strong><p>La première partie rassemble les preuves. La seconde transforme le score de façon non linéaire.</p></div>
+      </aside>
+    </div>
+  </section>
+}

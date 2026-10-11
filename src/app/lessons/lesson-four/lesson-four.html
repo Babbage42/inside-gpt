@@ -1,0 +1,84 @@
+@if (!started()) {
+  <section class="intro">
+    <span class="breadcrumb">Leçon 4 · Premier modèle de langage</span>
+    <div class="intro-grid">
+      <div><span class="chapter">04</span><h1>Que signifie vraiment<br /><em>prédire du langage ?</em></h1><p>Avant les embeddings, l’attention ou GPT, construisons le plus petit modèle de langage possible. Il nous montrera exactement quelles sont les données, la question posée au modèle et la forme de sa réponse.</p></div>
+      <aside><span>Complète intuitivement</span><blockquote>« le chat <mark>___</mark> »</blockquote><div class="candidate-row"><i>dort</i><i>mange</i><i>joue</i></div><p>Il n’existe pas forcément une réponse unique. Le modèle doit distribuer sa confiance entre plusieurs continuations.</p></aside>
+    </div>
+    <div class="task-loop"><article><b>1</b><span>Recevoir</span><strong>un contexte</strong><small>« le chat »</small></article><i>→</i><article><b>2</b><span>Calculer</span><strong>des probabilités</strong><small>dort 40 %, mange 35 %…</small></article><i>→</i><article><b>3</b><span>Choisir</span><strong>un prochain token</strong><small>« dort »</small></article><i>→</i><article><b>4</b><span>Recommencer</span><strong>avec le nouveau contexte</strong><small>jusqu’à la fin</small></article></div>
+    <div class="start"><div><span>Question directrice</span><strong>Comment cinq phrases suffisent-elles à construire une première distribution de probabilités ?</strong></div><button type="button" (click)="started.set(true)">Construire le modèle <span>→</span></button></div>
+  </section>
+} @else {
+  <section class="lab">
+    <header><div><span class="breadcrumb">Leçon 4 / Expérience guidée</span><h1>Notre premier <em>modèle de langage.</em></h1><p>Un modèle bigramme : il prédit chaque token uniquement à partir du token précédent.</p></div><button type="button" (click)="started.set(false)">← Revoir le contexte</button></header>
+    <div class="workspace">
+      <div class="main">
+        <div class="strategy-explanation"><article><span>Pourquoi revenir aux statistiques ?</span><strong>Comprendre la tâche avant son implémentation neuronale</strong><p>Ici, probabilité = nombre de transitions vers un token / total des transitions après le token de départ. Les valeurs viennent du corpus, pas de poids entraînés. Il n’y a ni softmax ni gradient. La leçon 5 gardera cette tâche — produire une distribution — mais changera le moyen de la calculer.</p></article></div>
+        <section class="corpus">
+          <div class="section-heading"><div><span>Données d’entraînement</span><strong>Un corpus de cinq phrases</strong></div><small>{{ transitions.length }} exemples de prédiction</small></div>
+          <div class="sentences">@for (sentence of sentences; track $index) {<p><i>&lt;début&gt;</i>@for (token of sentence; track $index) {<b>{{ token }}</b>}<i>&lt;fin&gt;</i></p>}</div>
+        </section>
+
+        @if (step() >= 2) {
+          <section class="token-strip"><span>Vocabulaire · {{ vocabulary.length }} tokens différents</span><div>@for (token of vocabulary; track token) {<button type="button" [class.selected]="selectedToken() === token" (click)="selectToken(token)">{{ token }}</button>}</div></section>
+        }
+
+        @if (step() >= 3) {
+          <section class="training-pairs"><div class="section-heading"><div><span>Exemples créés automatiquement</span><strong>entrée → cible</strong></div><small>Chaque voisinage enseigne une transition</small></div><div>@for (pair of transitions; track $index) {<button type="button" [class.selected]="selectedToken() === pair.from" (click)="selectToken(pair.from)"><span>{{ pair.from }}</span><i>→</i><strong>{{ pair.to }}</strong></button>}</div></section>
+        }
+
+        @if (step() >= 4) {
+          <section class="model-view">
+            <div class="count-matrix">
+              <div class="section-heading"><div><span>Mémoire du bigramme</span><strong>Matrice des comptes</strong></div><small>ligne = contexte · colonne = suivant</small></div>
+              <div class="matrix-scroll"><table><thead><tr><th>après ↓ / vient →</th>@for (token of vocabulary; track token) {<th>{{ token }}</th>}</tr></thead><tbody>@for (from of vocabulary; track from) {<tr [class.selected]="selectedToken() === from" (click)="selectToken(from)"><th>{{ from }}</th>@for (to of vocabulary; track to) {<td [class.nonzero]="count(from,to) > 0">{{ count(from,to) || '·' }}</td>}</tr>}</tbody></table></div>
+            </div>
+
+            <div class="prediction-panel">
+              <span>Après le token</span><strong class="context-token">{{ selectedToken() }}</strong>
+              @if (distribution().length) {
+                <div class="bars">@for (item of distribution(); track item.token) {<article><div><span>{{ item.token }}</span><small>{{ item.count }} observation{{ item.count > 1 ? 's' : '' }}</small><strong>{{ item.probability * 100 | number: '1.0-0' }}%</strong></div><i><b [style.width.%]="item.probability * 100"></b></i></article>}</div>
+                <p class="sum">Somme des probabilités = 100 %</p>
+              } @else {<p class="no-next">Aucune transition observée après ce token.</p>}
+            </div>
+          </section>
+        }
+
+        @if (step() >= 7) {
+          <section class="generator">
+            <div class="section-heading"><div><span>Inférence autorégressive</span><strong>Générer token après token</strong></div><button type="button" (click)="resetGeneration()">↻ Recommencer</button></div>
+            <div class="generated-text">@for (token of generated(); track $index) {<span [class.marker]="token.startsWith('<')">{{ token }}</span>}<i class="cursor"></i></div>
+            <div class="strategy-explanation"><article><span>Choix maximal</span><strong>Toujours prendre la plus grande barre</strong><p>Même distribution → toujours le même token.</p></article><i>≠</i><article><span>Échantillonnage</span><strong>Tirer au hasard selon la taille des barres</strong><p>60 % signifie environ 6 chances sur 10, pas une certitude.</p></article></div>
+            <div class="generation-controls"><div><span>Distribution utilisée maintenant</span><strong>après « {{ currentGeneratedToken() }} »</strong></div><button type="button" (click)="generate('greedy')" [disabled]="currentGeneratedToken() === '<fin>'"><strong>Choisir le plus probable</strong><small>déterministe</small></button><button type="button" class="sample" (click)="generate('sample')" [disabled]="currentGeneratedToken() === '<fin>'"><strong>Échantillonner</strong><small>tirage pondéré</small></button></div>
+            @if (lastChoice(); as choice) {
+              <div class="choice-trace" [class.sampled]="choice.strategy === 'sample'">
+                @if (choice.strategy === 'greedy') {
+                  <span>Choix maximal</span><p><strong>« {{ choice.token }} »</strong> a été choisi parce que sa probabilité de {{ choice.probability * 100 | number: '1.0-0' }} % était la plus élevée.</p>
+                } @else {
+                  <span>Tirage visible : {{ choice.draw! * 100 | number: '1.0-0' }} sur 100</span><p>Ce tirage tombe dans la zone de <strong>« {{ choice.token }} »</strong>, qui occupait {{ choice.probability * 100 | number: '1.0-0' }} % de la distribution. Le token le plus probable aurait aussi pu être tiré.</p>
+                }
+              </div>
+            }
+          </section>
+        }
+
+        <div class="guide"><button type="button" aria-label="Étape précédente de la leçon 4" (click)="previous()" [disabled]="step() === 0">←</button><div><span>{{ currentStep().kicker }}</span><strong>{{ currentStep().title }}</strong><p>{{ currentStep().text }}</p></div><aside><span>Ce qu’il faut retenir</span><p>{{ currentStep().takeaway }}</p></aside><div><small>{{ step() + 1 }}/{{ steps.length }}</small><button type="button" aria-label="Étape suivante de la leçon 4" (click)="next()" [disabled]="step() === steps.length - 1">→</button></div></div>
+
+        @if (step() === 9) {
+          <section class="quiz"><span>Validation</span><h2>Pour prédire après « le chat », quelle partie du contexte notre bigramme utilise-t-il réellement ?</h2><div class="answers"><button type="button" [class.selected]="quizAnswer() === 'all'" (click)="answer('all')">Toute la séquence « le chat »</button><button type="button" [class.selected]="quizAnswer() === 'last'" (click)="answer('last')">Seulement le dernier token « chat »</button><button type="button" [class.selected]="quizAnswer() === 'first'" (click)="answer('first')">Seulement le premier token « le »</button></div>
+            @if (quizAnswer() && !quizCorrect()) {<p class="wrong">Le nom « bi-gramme » indique que le modèle apprend des paires : un token de contexte et le token qui le suit.</p>}
+            @if (quizCorrect()) {<div class="success"><span>✓ Exact</span><p>Le modèle ignore « le ». Cette limite motive une représentation capable de conserver davantage de contexte.</p><button type="button" (click)="completed.emit()">Terminer et passer à la leçon 5 <span>→</span></button></div>}
+          </section>
+        }
+      </div>
+
+      <aside class="side-panel">
+        <span class="side-title">Explorer une prédiction</span><p>Choisis le token connu. Le modèle affiche ce qu’il a observé juste après dans son corpus.</p>
+        <div class="token-options">@for (token of vocabulary; track token) {<button type="button" [class.selected]="selectedToken() === token" (click)="selectToken(token)">{{ token }}</button>}</div>
+        <div class="formula"><span>Du compte à la probabilité</span><code>P(suivant | contexte)</code><strong>= compte(contexte → suivant)<br />÷ total après contexte</strong></div>
+        <div class="example">@if (selectedToken() === 'le') {<span>Exemple actuel</span><strong>P(chat | le) = 3 ÷ 5 = 60 %</strong><p>Cette barre verticale signifie « sachant que le contexte est ».</p>} @else {<span>À lire comme</span><strong>« probabilité du suivant sachant {{ selectedToken() }} »</strong>}</div>
+        <div class="llm-bridge"><span>Ce qui restera vrai pour un LLM</span><ul><li>une séquence devient des tokens ;</li><li>chaque position fournit une cible ;</li><li>la sortie est une distribution ;</li><li>la génération répète la prédiction.</li></ul></div>
+      </aside>
+    </div>
+  </section>
+}

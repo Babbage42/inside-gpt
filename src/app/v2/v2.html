@@ -1,0 +1,146 @@
+<div class="v2-shell">
+  <aside class="rail">
+    <a class="brand" href="/v2"><span class="brand-symbol">∇</span><span>GradientLab <b>V2</b></span></a>
+    <div class="rail-intro">Une enquête, une phrase, aucun nombre magique.</div>
+    <a class="v3-pilot-link" href="/v3">Essayer le parcours pédagogique V3 →</a>
+    <div class="lesson-switch"><button type="button" [class.active]="lesson() === 1" (click)="openLessonOne()">Leçon 1 · Entrée</button><button type="button" [class.active]="lesson() === 2" (click)="openLessonTwo()">Leçon 2 · Calcul & apprentissage</button><button type="button" [class.active]="lesson() === 3" (click)="openLessonThree()">Leçon 3 · Ordre & positions</button><button type="button" [class.active]="lesson() === 4" (click)="openLessonFour()">Leçon 4 · Attention causale</button><button type="button" [class.active]="lesson() === 5" (click)="openLessonFive()">Leçon 5 · Attention qui apprend →</button></div>
+    <nav aria-label="Écrans de la V2">
+      @if (lesson() === 1) {
+      <span class="rail-label">Leçon 1 · 7 étapes de l’enquête</span>
+      @for (item of screens; track $index) {
+        <button type="button" [class.current]="screen() === $index" (click)="go($index)">
+          <small>{{ ($index + 1).toString().padStart(2, '0') }}</small><span>{{ item.short }}</span>
+        </button>
+      }
+      } @else { <span class="rail-label later">Dans cette leçon</span><div class="upcoming">{{ lesson() === 2 ? 'Contexte → scores → probabilités → erreur → correction des poids.' : lesson() === 3 ? 'Permutation → positions ajoutées → interaction token-position → besoin d’attention.' : lesson() === 4 ? 'E + P → Q/K/V → masque causal → lecture des valeurs → probabilités.' : 'Tête non entraînée → loss → gradients Q/K/V → avant/après mesuré.' }} Les expériences utilisent le même corpus contrôlé.</div> }
+    </nav>
+    <a class="old-course" href="/">← Revenir au cours V1</a>
+  </aside>
+
+  <main class="main">
+    <div class="v21-context"><span class="v21-heldout">PRÉFIXE TENU HORS ENTRAÎNEMENT · « le chat mange la »</span><div class="v21-legend" aria-label="Origine des valeurs"><span class="v21-data">Donnée / cible</span><span class="v21-param">Paramètre stocké</span><span class="v21-computed">Valeur calculée</span></div></div>
+    <div class="v21-map" aria-label="Place actuelle dans la machine"><span [class.active]="lesson() === 1">texte → tokens → ID</span><i>→</i><span [class.active]="lesson() === 1 || lesson() === 2">E</span><i>→</i><span [class.active]="lesson() === 2">contexte → W → probabilité → erreur</span><i>→</i><span [class.active]="lesson() === 3 || lesson() === 4 || lesson() === 5">positions → attention {{ lesson() === 5 ? '→ apprentissage' : '' }}</span></div>
+    @if (lesson() === 1) {
+    <div class="topline"><span>PARCOURS V2 / LEÇON 1 : DU TEXTE AUX VECTEURS / {{ screens[screen()].stage }}</span><span>Progression mémorisée sur cet appareil</span></div>
+    <section class="hero">
+      <div class="hero-label">Notre question, du début à la fin</div>
+      <div class="hero-prompt">
+        <span>le</span>
+        <button type="button" [class.picked]="animal() === 'chat'" (click)="setAnimal(animal() === 'chat' ? 'chien' : 'chat')" title="Changer le sujet">{{ animal() }} <i>↕</i></button>
+        <button type="button" [class.picked]="verb() === 'mange'" (click)="setVerb(verb() === 'mange' ? 'regarde' : 'mange')" title="Changer le verbe">{{ verb() }} <i>↕</i></button>
+        <span>la</span><strong>?</strong>
+      </div>
+      <p>Quel token viendra ensuite ? Change le sujet ou le verbe : la trace ci-dessous et les calculs de l’étape se mettent à jour avec la même phrase.</p>
+    </section>
+
+    <section class="live-trace" aria-label="Trajet réellement calculé">
+      <div class="trace-heading"><div><small>TRACE VIVANTE</small><strong>{{ screen() < 4 ? 'Témoin par comptage du corpus' : 'Entrée du futur mini-modèle' }}</strong></div><span>{{ screen() < 4 ? 'fréquences observées · pas un réseau neuronal' : 'réseau neuronal non encore construit' }}</span></div>
+      @if (screen() < 4) {
+        <div class="trace-flow"><div class="trace-cell" [class.current]="screen() === 0"><small>Phrase posée</small><b>{{ formatted(traceCorpusPrefix()) }} ?</b></div><i>→</i><div class="trace-cell" [class.current]="screen() === 1"><small>{{ screen() === 2 && lastOnly() ? 'Occurrences de « la »' : 'Correspondances exactes' }}</small><b>{{ traceCorpusCount() }} ligne{{ traceCorpusCount() > 1 ? 's' : '' }}</b></div><i>→</i><div class="trace-cell" [class.current]="screen() === 2"><small>Comptes observés</small><b>@for (item of traceCorpusMatches(); track item.token) { {{ item.token }} : {{ item.count }}{{ $last ? '' : ' ·' }} }@empty { aucun }</b></div><i>→</i><div class="trace-cell" [class.current]="screen() === 3"><small>Fréquences</small><b>@for (item of traceCorpusMatches(); track item.token) { {{ item.token }} {{ item.probability * 100 | number:'1.0-1' }} %{{ $last ? '' : ' ·' }} }@empty { non calculables }</b></div></div>
+      } @else {
+        <div class="trace-flow"><div class="trace-cell"><small>Texte</small><b>{{ formatted(sentence()) }}</b></div><i>→</i><div class="trace-cell" [class.current]="screen() === 4"><small>Tokens</small><b>@for (token of traceTokens(); track $index) { [{{ token }}] }</b></div>@if (screen() >= 5) { <i>→</i><div class="trace-cell" [class.current]="screen() === 5"><small>IDs des tokens</small><b>@for (id of traceIds(); track $index) { {{ id }}{{ $last ? '' : ' ·' }} }</b></div> }@if (screen() >= 6) { <i>→</i><div class="trace-cell current"><small>Table E · « {{ selectedToken() }} »</small><b>E[{{ tokenIndex() }}] = [@for (coordinate of embedding(); track $index) { {{ coordinate | number:'1.3-3' }}{{ $last ? '' : ', ' }} }]</b></div> }</div>
+      }
+      <div class="trace-limit">{{ screen() < 4 ? 'Ici, la fréquence vient du corpus. Le modèle neuronal n’a encore produit aucun logit.' : screen() === 4 ? 'Nous avons seulement découpé le texte : aucun vecteur ni score n’a encore été calculé.' : screen() === 5 ? 'Nous avons attribué des adresses aux tokens : aucune information linguistique n’est encore contenue dans la taille des IDs.' : 'Nous avons lu des vecteurs initialisés. Neurones, attention, logits et softmax ne seront montrés qu’avec un moteur réellement exécutable.' }}</div>
+    </section>
+
+    <section class="lesson">
+      <div class="lesson-heading"><div><span class="eyebrow">Leçon 1 · {{ screens[screen()].stage }}</span><h1>{{ screens[screen()].title }}</h1></div><div class="heading-actions"><span class="screen-count">{{ screen() + 1 }} / {{ screens.length }}</span>@if (screen() > 0 || finished()) { <button type="button" class="restart" (click)="go(0)">↺ Reprendre au début</button> }</div></div>
+      <div class="step-status" aria-live="polite"><div><small>Enquête en cours · étape {{ screen() + 1 }} sur {{ screens.length }}</small><strong>Ce que nous avons réellement construit jusqu’ici</strong></div><div class="step-segments" aria-hidden="true">@for (item of screens; track $index) { <i [class.done]="$index <= screen()"></i> }</div></div>
+
+      @switch (screen()) {
+        @case (0) {
+          <div class="story"><p>Notre question centrale est <strong>« le chat mange la … »</strong>. Nous avons volontairement retiré du corpus ce préfixe exact et donc la phrase « le chat mange la souris ». La réponse <em>souris</em> servira de cas test, pas d’exemple à mémoriser.</p><p>Commençons par une règle témoin : chercher le préfixe <em>exact</em> dans les dix phrases et compter le mot qui suit. Regarde sa trace : pour le chat qui mange, il ne trouve rien. C’est précisément le problème à résoudre. Tu peux changer les mots en haut pour voir ce qu’il arrive à trouver ailleurs.</p></div>
+          <div class="lesson-overview"><strong>Une seule enquête en sept étapes.</strong><p>Nous allons examiner toutes les phrases disponibles, voir ce que l’on peut déduire d’indices partiels et ce que le simple comptage ne sait pas faire. Ensuite seulement, nous suivrons le texte vers tokens, IDs et vecteurs. La leçon 2 construira un modèle numérique et testera s’il généralise vraiment sur ce préfixe jamais vu.</p></div>
+          <div class="question-card"><span>À observer</span><strong>Que change le remplacement de « chat » par « chien » ?</strong><p>Essaie le bouton dans la phrase tout en haut. « le chien mange la » existe dans les données ; « le chat mange la » n’y est pas. Une absence de compte n’est pas une probabilité de 0 % pour « souris ».</p></div>
+        }
+        @case (1) {
+          <div class="story"><p><strong>Voici les dix phrases d’entraînement, toutes différentes.</strong> La phrase test « le chat mange la souris » n’y figure pas. Les lignes surlignées concernent « {{ animal() }} » et contiennent « la » : elles sont des <em>indices partiels</em>, pas des correspondances exactes au préfixe demandé.</p><p>Par exemple, « un chat mange la souris » partage le sujet, le verbe et la fin, mais son premier token est « un » ; « le chat regarde la souris » partage le sujet et la fin, mais pas le verbe. Clique une ligne et vérifie précisément ce qu’elle apporte.</p></div>
+          <div class="corpus-grid">
+            @for (line of corpus; track $index) {
+              <button type="button" class="corpus-line" [class.match]="evidenceRows().includes($index)" [class.selected]="containsSelected($index)" (click)="selectedRow.set($index)"><small>{{ ($index + 1).toString().padStart(2, '0') }}</small><span>{{ line }}</span><em>{{ evidenceRows().includes($index) ? 'indice partiel' : 'autre phrase' }}</em></button>
+            }
+          </div>
+          @if (selectedRow() !== null) { <div class="inspect">Ligne {{ selectedRow()! + 1 }} : {{ corpus[selectedRow()!] }}<br />{{ evidenceRows().includes(selectedRow()!) ? 'Elle fournit un indice sur ce sujet et un mot après « la », mais ne prouve pas la fin du préfixe exact.' : 'Cette ligne ne contient pas notre sujet suivi de « la ».' }}</div> }
+        }
+        @case (2) {
+          <div class="story"><p>Et si notre témoin ne regardait que le dernier token, <strong>« la »</strong> ? Il additionne toutes les occurrences après « la », sans savoir s’il s’agit du chat ou du chien. Les deux préfixes obtiennent alors la même distribution.</p><p>Active « lire seulement la », puis réactive le préfixe entier. Pour notre question tenue à l’écart, le préfixe entier ne trouve <em>aucune ligne</em> ; pour « le chien mange la », il en trouve une. Il nous faut conserver des indices de contexte tout en pouvant recombiner les mots.</p></div>
+          <div class="toggle-row"><button type="button" [class.active]="!lastOnly()" (click)="lastOnly.set(false)">Lire tout le préfixe</button><button type="button" [class.active]="lastOnly()" (click)="lastOnly.set(true)">Lire seulement « la »</button></div>
+          <div class="compare"><div><small>Préfixe A</small><strong>{{ formatted(sentence()) }}</strong>@for (item of matching(); track item.token) { <div class="mini-result">{{ item.token }} <b>{{ item.probability * 100 | number:'1.0-1' }} %</b></div> } @empty { <div class="mini-result">Aucune correspondance exacte</div> }</div><div><small>Préfixe B</small><strong>{{ formatted(otherPrefix()) }}</strong>@for (item of comparison(); track item.token) { <div class="mini-result">{{ item.token }} <b>{{ item.probability * 100 | number:'1.0-1' }} %</b></div> } @empty { <div class="mini-result">Aucune correspondance exacte</div> }</div></div>
+          <div class="insight">{{ lastOnly() ? 'Même dernier mot → mêmes comptes. Le témoin a perdu le sujet et le verbe.' : 'Le préfixe entier distingue un contexte vu d’un contexte inédit, mais ne sait pas compléter celui qui manque.' }}</div>
+        }
+        @case (3) {
+          <div class="story"><p>Revenons à notre question centrale : <strong>« le chat mange la … »</strong>. Chaque token est connu ; « un chat mange la souris » et « le chat regarde la souris » donnent des indices. Mais ce préfixe entier n’apparaît jamais dans les dix phrases.</p><p>Le premier voisin ne diffère que par « un » au lieu de « le » : c’est donc un <strong>test de généralisation modeste</strong>, choisi pour pouvoir suivre chaque indice. Un humain peut envisager « souris », sans certitude logique : « pomme » reste possible dans une autre histoire. Nous demanderons au modèle une <em>distribution</em> et vérifierons sa préférence, sans annoncer une réponse garantie.</p></div>
+          <div class="novel-card"><small>Test de généralisation · même vocabulaire, nouvel assemblage</small><strong>{{ formatted(novelSentence()) }} …</strong><div class="novel-tokens">@for (token of novelSentence(); track $index) { <span>{{ token }} <small>connu</small></span> }</div><div class="novel-result">Recherche du préfixe exact : <b>{{ novelMatches().length }} correspondance{{ novelMatches().length > 1 ? 's' : '' }}</b>. {{ novelMatches().length === 0 ? 'Aucun pourcentage ne peut venir du témoin : son dénominateur serait zéro.' : 'Ce préfixe modifié existe dans le corpus. Reviens à « le chat mange la » pour examiner le cas tenu à l’écart.' }}</div></div>
+          <div class="question-card"><span>Pourquoi la prochaine pièce devient nécessaire</span><strong>Nous devons représenter les éléments connus pour les recombiner, pas seulement mémoriser des phrases entières.</strong><p>La suite descend dans l’entrée du programme : tokens, IDs et vecteurs. Cela ne suffit pas encore à prédire cette phrase inédite, mais ce sont les matériaux que le futur réseau pourra transformer.</p></div>
+        }
+        @case (4) {
+          <div class="story"><p>Une phrase de l’échantillon n’arrive pas au modèle comme une phrase indivisible. Notre petit tokenizer sépare les mots et le point. Il ajoute un token <strong>&lt;début&gt;</strong> pour que même le premier mot puisse être prédit.</p><p>Une seule phrase fournit alors plusieurs exercices : voir le début pour prédire « le », puis voir « le » pour prédire « chat », etc. Choisis une phrase et une ligne d’entraînement. <strong>La cible est cachée de l’entrée</strong> : on l’utilise seulement pour mesurer l’erreur pendant l’entraînement.</p></div>
+          <label class="select-label">Phrase à découper <select [value]="selectedRow() ?? 0" (change)="selectedRow.set(+$any($event.target).value); selectedPair.set(0)">@for (line of corpus; track $index) { <option [value]="$index">{{ ($index + 1).toString().padStart(2, '0') }} — {{ line }}</option> }</select></label>
+          <div class="token-strip"><span>&lt;début&gt;</span>@for (token of tokenized(); track $index) { <span>{{ token }}</span> }</div>
+          <div class="pair-list">@for (entry of pairs(); track $index) { <button type="button" [class.active]="selectedPair() === $index" (click)="selectedPair.set($index)"><small>{{ $index + 1 }}</small><span>{{ formatted(entry.input) }}</span><b>→ {{ entry.target }}</b></button> }</div>
+          <div class="insight">Exercice {{ selectedPair() + 1 }} : l’entrée est « {{ formatted(pair(selectedPair()).input) }} ». La réponse attendue pour calculer l’erreur est « {{ pair(selectedPair()).target }} ».</div>
+        }
+        @case (5) {
+          <div class="story"><p>La machine manipule des nombres. On attribue donc à chaque token une <strong>adresse entière</strong> dans un vocabulaire. Par exemple, « chat » désigne une ligne de table. Son ID n’indique pas qu’il vaut « plus » ou « moins » qu’un chien.</p><p>Inverse les numéros ci-dessous : si on renomme toutes les adresses de manière cohérente, le texte et ses comptes restent identiques. Ce qui comptera plus tard, ce sont les <em>valeurs contenues dans les lignes</em>, et non la taille de leur numéro.</p></div>
+          <button class="experiment-btn" type="button" (click)="scrambled.set(!scrambled())">{{ scrambled() ? 'Rétablir les IDs d’origine' : 'Inverser les IDs partout' }}</button>
+          <div class="id-grid">@for (token of vocabulary; track token) { <button type="button" [class.selected]="selectedToken() === token" (click)="selectedToken.set(token)"><span>{{ token }}</span><b>{{ scrambled() ? vocabulary.length - 1 - $index : $index }}</b></button> }</div>
+          <div class="insight">« {{ selectedToken() }} » → adresse {{ shownId() }}. Renommer les IDs ne modifie ni les phrases, ni les indices partiels : @for (item of relatedEvidence(); track item.token) { {{ item.token }} {{ item.count }} fois{{ $last ? '.' : ' ;' }} }</div>
+        }
+        @case (6) {
+          <div class="story"><p>Un ID est une adresse, pas une mesure. Nous voulons que chaque token dispose de <strong>nombres que l’entraînement pourra modifier</strong>. La solution la plus directe est une grille : une ligne par token, plusieurs cases numériques par ligne. Cette grille est une <em>matrice</em> ; ici on l’appelle <strong>E</strong>, pour « embeddings ».</p><p>Nous avons {{ vocabulary.length }} tokens : E a donc {{ vocabulary.length }} lignes. Nous choisissons <strong>4 colonnes</strong> parce que quatre nombres tiennent à l’écran et suffisent pour expérimenter, pas parce qu’ils signifieraient d’avance « animal », « action », etc. Cela donne {{ vocabulary.length }} × 4 = {{ vocabulary.length * 4 }} valeurs ajustables. Cliquer « chat » revient simplement à lire sa ligne.</p></div>
+          <div class="seed-note"><strong>Pourquoi ces valeurs initiales et « 23 » ?</strong><p>Avant tout entraînement, il faut remplir les cases. Un générateur produit de petits nombres différents ; <b>23 est sa graine</b>, c’est-à-dire le réglage qui permet de retrouver exactement le même départ à chaque essai. Ni 23 ni les valeurs ne sont des connaissances linguistiques. Les petites différences évitent de commencer avec toutes les lignes identiques ; la leçon 2 montrera quelles valeurs sont corrigées par les données.</p></div>
+          <div class="embedding-layout"><div class="embedding-table"><div class="table-header"><span>Token</span><span>ID</span><span>coord. 1</span><span>coord. 2</span><span>coord. 3</span><span>coord. 4</span></div>@for (token of vocabulary; track $index) { <button type="button" [class.selected]="selectedToken() === token" (click)="selectedToken.set(token)"><strong>{{ token }}</strong><small>{{ $index }}</small>@for (coordinate of embeddings[$index]; track $index) { <span>{{ coordinate | number:'1.3-3' }}</span> }</button> }</div><div class="vector-card"><small>Lecture de la ligne</small><strong>E[{{ tokenIndex() }}] = E[« {{ selectedToken() }} »]</strong><div class="vector">[@for (coordinate of embedding(); track $index) { <span>{{ coordinate | number:'1.3-3' }}</span> }]</div><p>Ce vecteur est <b>initialisé</b>, pas encore appris. Chaque coordonnée est un paramètre qui pourra changer.</p></div></div>
+          <details class="onehot-lab"><summary>Pourquoi peut-on aussi écrire cette lecture « one-hot × E » ?</summary>
+            <div class="onehot-title"><span>Une adresse peut aussi s’écrire avec des 0 et un 1</span><strong>Deux façons de lire la même ligne</strong></div>
+            <p>1. « {{ selectedToken() }} » a l’adresse {{ tokenIndex() }}. Imagine une liste de {{ vocabulary.length }} cases, une par token : <b>1 à la case {{ tokenIndex() }}, 0 ailleurs</b>. Cette liste s’appelle <em>one-hot</em> (« une seule case active »). Elle n’est pas un nouvel objet appris : c’est simplement une autre écriture de l’adresse. Clique un autre token dans la table pour voir le 1 se déplacer.</p>
+            <div class="hot-cells">@for (token of vocabulary; track $index) { <div [class.hot]="$index === tokenIndex()"><small>{{ token }}</small><b>{{ $index === tokenIndex() ? 1 : 0 }}</b></div> }</div>
+            <p>2. Pour fabriquer une coordonnée du vecteur, on multiplie chaque case par la coordonnée correspondante de sa ligne, puis on additionne. Choisis la coordonnée à calculer :</p>
+            <div class="coordinate-buttons">@for (coordinate of embedding(); track $index) { <button type="button" [class.active]="selectedCoordinate() === $index" (click)="selectedCoordinate.set($index)">coord. {{ $index + 1 }}</button> }</div>
+            <div class="equation">@for (token of vocabulary; track $index) { <span [class.active]="$index === tokenIndex()">{{ $index === tokenIndex() ? 1 : 0 }} × ({{ embeddings[$index][selectedCoordinate()] | number:'1.3-3' }})</span>{{ $last ? ' = ' : ' + ' }} }<strong>{{ embedding()[selectedCoordinate()] | number:'1.3-3' }}</strong></div>
+            <p>3. Tous les autres termes valent 0. Dans du code, on évite donc ce grand calcul inutile : <code>E[{{ tokenIndex() }}]</code> lit directement la même ligne. <strong>La table n’est pas un nouveau choix arbitraire après le one-hot : c’est ce que le one-hot sélectionne.</strong></p>
+          </details>
+        }
+      }
+
+      @if (screen() <= 1) {
+        <section class="results"><div class="results-head"><div><span>Calcul témoin · comptage du corpus</span><h2>Après « {{ formatted(sentence()) }} »</h2></div><small>{{ sampleRows().length }} occurrence{{ sampleRows().length > 1 ? 's' : '' }} de ce préfixe</small></div>
+          @for (item of fullMatching(); track item.token) { <button type="button" class="bar-row" (click)="selectedRow.set(item.rows[0]); showWhy.set(true)"><span>{{ item.token }}</span><div class="bar-track"><i [style.width.%]="item.probability * 100"></i></div><b>{{ item.count }}/{{ sampleRows().length }} = {{ item.probability * 100 | number:'1.0-1' }} %</b></button> }
+          @if (fullMatching().length === 0) { <div class="empty">Aucune phrase ne contient ce préfixe exact. Le témoin ne peut rien prédire ici : ce n’est pas « souris : 0 % ».</div> }
+          <div class="partial-evidence"><strong>Indices partiels, autre calcul</strong><p>Si l’on garde le sujet « {{ animal() }} » et le mot « la », mais qu’on ignore l’article initial et le verbe, voici les fins observées. Ce sont des comptes de phrases, <em>pas</em> la probabilité du prochain mot pour le préfixe exact.</p>@for (item of relatedEvidence(); track item.token) { <button type="button" (click)="selectedRow.set(item.rows[0]); showWhy.set(true)">{{ item.token }} : {{ item.count }} phrase{{ item.count > 1 ? 's' : '' }} (ligne{{ item.rows.length > 1 ? 's' : '' }} {{ rowNumbers(item.rows) }})</button> }</div>
+          @if (showWhy() && selectedRow() !== null) { <div class="inspect">Exemple source : ligne {{ selectedRow()! + 1 }}, « {{ corpus[selectedRow()!] }} ». Ouvre l’écran « Les dix phrases » pour toutes les sources.</div> }
+        </section>
+      }
+
+      <section class="tri-view"><div class="tabs"><button type="button" [class.active]="view() === 'intuition'" (click)="view.set('intuition')">Comprendre</button><button type="button" [class.active]="view() === 'nombres'" (click)="view.set('nombres')">Voir les nombres</button><button type="button" [class.active]="view() === 'code'" (click)="view.set('code')">Voir le code</button></div>
+        @switch (view()) {
+          @case ('intuition') { <div class="view-body">@switch (screen()) {
+            @case (0) { Un préfixe absent ne donne aucune fréquence exacte. Les comptes par sujet sont des indices partiels ; ils ne sont pas encore une prédiction du modèle. }
+            @case (1) { Les dix phrases sont distinctes. La phrase de test est absente : il faudra recombiner des indices vus séparément, sans traiter une phrase proche comme une preuve certaine. }
+            @case (2) { Lire « la » seul efface les mots précédents. Lire le préfixe exact ne suffit pas non plus si celui-ci est inédit. }
+            @case (3) { Reconnaître tous les mots séparément ne suffit pas au témoin par comptage. Il ne peut répondre qu’aux préfixes exacts présents dans ses données. }
+            @case (4) { Chaque paire demande « avec ce début, quel token vient ensuite ? ». Aucune paire d’entraînement ne contient le préfixe test « le chat mange la ». }
+            @case (5) { Un ID est comme un numéro de ligne dans une base de données. Le changer partout sans changer la ligne désignée n’apporte aucune information nouvelle. }
+            @default { La table transforme une adresse en une liste de valeurs ajustables. La notation E[id] décrit une lecture de ligne, pas un calcul mystérieux. }
+          }</div> }
+          @case ('nombres') { <div class="view-body numbers">@switch (screen()) {
+            @case (0) { {{ sampleRows().length }} préfixe exact ; @for (item of relatedEvidence(); track item.token) { {{ item.token }} : {{ item.count }} indice{{ item.count > 1 ? 's' : '' }} lié{{ item.count > 1 ? 's' : '' }} au sujet ; } }
+            @case (1) { Lignes liées à « {{ animal() }} » et suivies d’un mot après « la » : {{ rowNumbers(evidenceRows()) }}. Le préfixe exact apparaît {{ sampleRows().length }} fois. }
+            @case (2) { Le mode « la » compte {{ traceCorpusCount() }} occurrences si activé ; le mode « préfixe entier » compte uniquement les occurrences exactes, y compris zéro. }
+            @case (3) { « {{ formatted(novelSentence()) }} » : {{ novelMatches().length }} continuation{{ novelMatches().length > 1 ? 's' : '' }} distincte{{ novelMatches().length > 1 ? 's' : '' }} dans le témoin. }
+            @case (4) { Phrase choisie : {{ pairs().length }} cibles, donc {{ pairs().length }} exercices. Le token &lt;début&gt; est une entrée ; la première cible vaut « {{ pairs()[0].target }} ». }
+            @case (5) { Vocabulaire : {{ vocabulary.length }} tokens. « {{ selectedToken() }} » possède l’ID {{ shownId() }} dans le codage actuel. }
+            @default { E a {{ vocabulary.length }} lignes × 4 colonnes = {{ vocabulary.length * 4 }} paramètres. Pour « {{ selectedToken() }} », on lit directement [@for (coordinate of embedding(); track $index) { {{ coordinate | number:'1.3-3' }}{{ $last ? '' : ', ' }} }]. }
+          }</div> }
+          @case ('code') { <pre class="view-body code">{{ pseudocode() }}</pre> }
+        }
+      </section>
+
+      @if (finished()) { <div class="completion-note"><strong>Leçon 1 terminée : nous avons compris l’entrée, pas encore le réseau.</strong><p>Tu as suivi la même phrase des données jusqu’à la lecture d’un vecteur. La leçon 2 reprend exactement cette table et construit les calculs de prédiction et d’apprentissage.</p></div> }
+      <div class="lesson-footer"><button type="button" class="secondary" [disabled]="screen() === 0 && !finished()" (click)="back()">← Étape précédente</button><span>Leçon 1 · étape {{ screen() + 1 }}/{{ screens.length }}</span><button type="button" class="primary" (click)="finished() ? openLessonTwo() : advance()">{{ screen() < screens.length - 1 && !finished() ? 'Étape suivante →' : 'Passer à la leçon 2 →' }}</button></div>
+    </section>
+    } @else if (lesson() === 2) { <app-v2-lesson-two (backToLessonOne)="openLessonOne()" (continueToLessonThree)="openLessonThree()"></app-v2-lesson-two> }
+    @else if (lesson() === 3) { <app-v2-lesson-three (backToLessonTwo)="openLessonTwo()" (continueToLessonFour)="openLessonFour()"></app-v2-lesson-three> }
+    @else if (lesson() === 4) { <app-v2-lesson-four (backToLessonThree)="openLessonThree()" (continueToLessonFive)="openLessonFive()"></app-v2-lesson-four> }
+    @else { <app-v2-lesson-five-attention (backToLessonFour)="openLessonFour()"></app-v2-lesson-five-attention> }
+  </main>
+</div>
