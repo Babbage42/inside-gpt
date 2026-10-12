@@ -6,19 +6,20 @@ Un laboratoire Angular interactif pour comprendre les réseaux de neurones et le
 
 Ouvrir [la V4](http://127.0.0.1:4200/v4) après `npm start`. Les versions précédentes restent accessibles (`/`, `/v2`, `/v3`) et gardent leurs sauvegardes.
 
-La V4 repart de zéro avec un autre parti pris : chaque chapitre commence par une expérience visuelle, le texte tient en quelques phrases, et les calculs détaillés sont renvoyés à la V3. Sept chapitres :
+La V4 repart de zéro avec un autre parti pris : chaque chapitre commence par une expérience visuelle et le texte tient en quelques phrases. Elle se lit à deux niveaux : le parcours principal, pour comprendre le fonctionnement sans prérequis, et des sections « Ouvrir le capot » qui déroulent le vrai calcul pour qui veut approfondir. Huit chapitres :
 
 1. **Le pari** — le lecteur joue lui-même à deviner le mot suivant et constate ce que ce seul jeu exige.
 2. **Compter** — un modèle par comptage, la boucle de génération, puis ses deux murs (0 % pour l'inédit, explosion du nombre de contextes).
-3. **La carte** — des embeddings 2D entraînés en direct ; les familles de mots se regroupent seules.
-4. **La pente** — le lecteur place un mot à la main, découvre le relief de la perte, puis regarde la descente de gradient.
-5. **Le regard** — un transformer à deux couches apprend en direct un jeu de fiches ; on voit l'attention se former, puis on ouvre le modèle.
-6. **L'échelle** — la machine complète, du mini-modèle à GPT-3, et le brouillon (chaîne de raisonnement).
-7. **L'intérieur** — ce que la recherche trouve dans les grands modèles, et ce qu'on ignore encore.
+3. **La carte** — des embeddings 2D entraînés en direct ; les familles de mots se regroupent seules. *Capot : produit scalaire, softmax, température.*
+4. **La pente** — le lecteur place un mot à la main, découvre le relief de la perte, puis regarde la descente de gradient. *Capot : rétropropagation, comparée à une différence finie.*
+5. **Le neurone** — un neurone réglé à la main, sa limite (frontière droite), puis une couche cachée entraînée en direct et le rôle de la non-linéarité.
+6. **Le regard** — un transformer à deux couches apprend en direct un jeu de fiches ; on voit l'attention se former, puis on ouvre le modèle. *Capot : questions, étiquettes, contenus, flux résiduel, et ablation des couches.*
+7. **L'échelle** — la machine complète, du mini-modèle à GPT-3, et le brouillon (chaîne de raisonnement). *Capot : une fiche suivie à travers tout le mini-transformer.*
+8. **L'intérieur** — ce que la recherche trouve dans les grands modèles, et ce qu'on ignore encore.
 
 Tout ce qui s'anime est un calcul réel exécuté dans le navigateur (`src/app/v4/engine`), avec des graines fixes : aucun résultat n'est scénarisé. Les deux mesures de généralisation utilisent des données tenues hors entraînement : 28 phrases plausibles jamais lues pour la carte, et un quart des couples prénom/boisson pour le transformer. La carte est volontairement régularisée, sinon elle mémorise ses 49 phrases ; le chapitre 3 le dit.
 
-Les tests de `engine.spec.ts` vérifient les gradients par différences finies, la séparation entraînement/test et la généralisation du transformer. Comme pour les versions précédentes, ils ne disent rien de l'efficacité pédagogique : elle reste à observer sur un vrai lecteur.
+Les tests de `engine.spec.ts` vérifient les gradients par différences finies, la séparation entraînement/test, la généralisation du transformer, l'effet de l'ablation de chaque couche et le comportement des neurones avec et sans non-linéarité. Comme pour les versions précédentes, ils ne disent rien de l'efficacité pédagogique : elle reste à observer sur un vrai lecteur.
 
 ## Nouveau parcours V3 — pilote pédagogique
 

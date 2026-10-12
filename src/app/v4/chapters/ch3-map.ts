@@ -1,5 +1,6 @@
 import { Component, OnDestroy, computed, signal } from '@angular/core';
-import { BarRow, Bars, Chapter, FAMILY_COLOR, FrameLoop, num, pct } from '../shared';
+import { BarRow, Bars, Capot, Chapter, FAMILY_COLOR, FrameLoop, num, pct } from '../shared';
+import { CapotReadout } from './capot-readout';
 import { ABSURD, Family, SENTENCES, UNSEEN, WORDS, WordMap, countProbs, familyOf, wordId } from '../engine/word-map';
 
 export const MAP_SEED = 9;
@@ -19,7 +20,7 @@ const SEEN = SENTENCES.map((s) => [s[s.length - 3], s[s.length - 2]] as const);
 
 @Component({
   selector: 'v4-ch-map',
-  imports: [Bars],
+  imports: [Bars, Capot, CapotReadout],
   template: `
     <header class="hero">
       <p class="kicker">Chapitre 3 · La carte</p>
@@ -96,6 +97,9 @@ const SEEN = SENTENCES.map((s) => [s[s.length - 3], s[s.length - 2]] as const);
           </table>
         </div>
       </section>
+      <v4-capot label="Comment une position devient une prédiction">
+        <ng-template><v4-capot-readout [model]="model" [tick]="steps()" /></ng-template>
+      </v4-capot>
       <section class="moment solo">
         <div class="takeaway">
           <p class="tiny">À retenir</p>
@@ -113,7 +117,7 @@ export class ChMap extends Chapter implements OnDestroy {
   readonly loop = new FrameLoop();
   readonly num = num;
   readonly pct = pct;
-  private model = new WordMap(MAP_SEED, 0.05, MAP_DECAY);
+  model = new WordMap(MAP_SEED, 0.05, MAP_DECAY);
   /** Incrémenté à chaque correction pour rafraîchir tout ce qui lit le modèle. */
   readonly steps = signal(0);
   readonly loss = signal(this.model.loss());

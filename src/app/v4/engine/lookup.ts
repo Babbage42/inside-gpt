@@ -43,6 +43,37 @@ export interface Trace {
   readonly attention: readonly number[][][];
 }
 
+interface LayerMats {
+  readonly query: Mat;
+  readonly key: Mat;
+  readonly value: Mat;
+  readonly score: Mat;
+  readonly added: Mat;
+}
+
+export interface LayerView {
+  readonly query: number[][];
+  readonly key: number[][];
+  readonly value: number[][];
+  /** Ressemblance question·étiquette, déjà divisée par √largeur. */
+  readonly score: number[][];
+  readonly weight: number[][];
+  readonly added: number[][];
+}
+
+export interface Inspection {
+  readonly token: number[][];
+  readonly position: number[][];
+  /** État de chaque mot : à l'entrée, après la couche 1, après la couche 2. */
+  readonly stream: number[][][];
+  readonly layers: LayerView[];
+  readonly logits: number[];
+  readonly probs: number[];
+}
+
+/** Le modèle entraîné au chapitre du regard, gardé pour les chapitres suivants. */
+export const trainedLookup: { model: LookupModel | null } = { model: null };
+
 export class LookupModel {
   readonly width: number;
   readonly layers: number;
@@ -77,16 +108,22 @@ export class LookupModel {
     return VOCAB.length * w * 2 + LENGTH * w + this.layers * 3 * w * w;
   }
 
-  private forward(ids: readonly number[], tape: Tape): { logits: Mat; attention: Mat[] } {
-    let x = tape.add(tape.pick(this.tok, ids), this.pos);
-    const attention: Mat[] = [];
+  /** skip : numéro d'une couche à débrancher (son apport n'est pas ajouté), pour les expériences d'ablation. */
+  private forward(ids: readonly number[], tape: Tape, skip = -1): { logits: Mat; attention: Mat[]; steps: LayerMats[]; stream: Mat[]; token: Mat } {
+    const token = tape.pick(this.tok, ids);
+    let x = tape.add(token, this.pos);
+    const attention: Mat[] = [], steps: LayerMats[] = [], stream: Mat[] = [x];
     for (let l = 0; l < this.layers; l++) {
-      const scores = tape.matmul(tape.matmul(x, this.wq[l]), tape.matmul(x, this.wk[l]), true);
-      const weights = tape.softmax(scores, 1 / Math.sqrt(this.width), true);
+      const query = tape.matmul(x, this.wq[l]), key = tape.matmul(x, this.wk[l]), value = tape.matmul(x, this.wv[l]);
+      const score = tape.matmul(query, key, true);
+      const weights = tape.softmax(score, 1 / Math.sqrt(this.width), true);
+      const added = tape.matmul(weights, value);
       attention.push(weights);
-      x = tape.add(x, tape.matmul(weights, tape.matmul(x, this.wv[l])));
+      steps.push({ query, key, value, score, added });
+      if (l !== skip) x = tape.add(x, added);
+      stream.push(x);
     }
-    return { logits: tape.matmul(tape.pick(x, [LAST]), this.out), attention };
+    return { logits: tape.matmul(tape.pick(x, [LAST]), this.out), attention, steps, stream, token };
   }
 
   /** Un pas d'entraînement réel sur des fiches tirées au hasard. Renvoie la perte moyenne. */
@@ -104,27 +141,46 @@ export class LookupModel {
     return total / batch;
   }
 
-  run(puzzle: Puzzle): Trace {
-    const { logits, attention } = this.forward(puzzle.ids, new Tape());
-    const probs = softmaxRow(logits, 0);
+  run(puzzle: Puzzle, skip = -1): Trace {
+    const { logits, attention } = this.forward(puzzle.ids, new Tape(), skip);
+    return { probs: softmaxRow(logits, 0), attention: attention.map(rowsOf) };
+  }
+
+  /** Toutes les valeurs intermédiaires du calcul, pour ouvrir le capot. */
+  inspect(puzzle: Puzzle): Inspection {
+    const { logits, attention, steps, stream, token } = this.forward(puzzle.ids, new Tape());
+    const scale = 1 / Math.sqrt(this.width);
     return {
-      probs,
-      attention: attention.map((m) =>
-        Array.from({ length: m.rows }, (_, r) => Array.from(m.data.subarray(r * m.cols, (r + 1) * m.cols))),
-      ),
+      token: rowsOf(token),
+      position: rowsOf(this.pos),
+      stream: stream.map(rowsOf),
+      layers: steps.map((step, l) => ({
+        query: rowsOf(step.query),
+        key: rowsOf(step.key),
+        value: rowsOf(step.value),
+        score: rowsOf(step.score).map((row) => row.map((v) => v * scale)),
+        weight: rowsOf(attention[l]),
+        added: rowsOf(step.added),
+      })),
+      logits: Array.from(logits.data),
+      probs: Array.from(softmaxRow(logits, 0)),
     };
   }
 
-  answer(puzzle: Puzzle): number {
-    const { probs } = this.run(puzzle);
+  answer(puzzle: Puzzle, skip = -1): number {
+    const { probs } = this.run(puzzle, skip);
     let best = 0;
     for (let j = 1; j < probs.length; j++) if (probs[j] > probs[best]) best = j;
     return best;
   }
 
-  accuracy(puzzles: readonly Puzzle[]): number {
-    return puzzles.filter((p) => this.answer(p) === p.target).length / puzzles.length;
+  accuracy(puzzles: readonly Puzzle[], skip = -1): number {
+    return puzzles.filter((p) => this.answer(p, skip) === p.target).length / puzzles.length;
   }
+}
+
+function rowsOf(m: Mat): number[][] {
+  return Array.from({ length: m.rows }, (_, r) => Array.from(m.data.subarray(r * m.cols, (r + 1) * m.cols)));
 }
 
 export function fixedPuzzles(kind: 'train' | 'test', count: number, seed: number): Puzzle[] {

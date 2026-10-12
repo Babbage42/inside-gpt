@@ -5,7 +5,7 @@ import { Chapter } from '../shared';
   selector: 'v4-ch-inside',
   template: `
     <header class="hero">
-      <p class="kicker">Chapitre 7 · L’intérieur</p>
+      <p class="kicker">Chapitre 8 · L’intérieur</p>
       <h1>Ce qu’on découvre <em>en ouvrant les grands modèles</em></h1>
       <p class="lede">Dans ton mini-modèle, une méthode est née sans que personne ne l’écrive. Voici ce que des chercheurs ont trouvé, par la même démarche, dans des modèles bien plus grands.</p>
     </header>
@@ -68,13 +68,13 @@ import { Chapter } from '../shared';
       </div>
       <div class="stage recap">
         <p class="tiny">Tu peux maintenant le dire avec tes mots</p>
-        <p class="sentence">Un LLM joue à <button type="button" (click)="jump.emit(0)">deviner la suite</button>. Comme <button type="button" (click)="jump.emit(1)">compter ne suffit pas</button>, il range les mots sur <button type="button" (click)="jump.emit(2)">une carte</button> qu’il règle en <button type="button" (click)="jump.emit(3)">descendant une pente</button>. Ses mots <button type="button" (click)="jump.emit(4)">se regardent</button> pour aller chercher l’information, couche après couche, <button type="button" (click)="jump.emit(5)">à très grande échelle</button>. Et de ce seul jeu émergent des méthodes que personne n’a écrites.</p>
+        <p class="sentence">Un LLM joue à <button type="button" (click)="jump.emit(0)">deviner la suite</button>. Comme <button type="button" (click)="jump.emit(1)">compter ne suffit pas</button>, il range les mots sur <button type="button" (click)="jump.emit(2)">une carte</button> qu’il règle en <button type="button" (click)="jump.emit(3)">descendant une pente</button>. Ses mots <button type="button" (click)="jump.emit(5)">se regardent</button> pour aller chercher l’information, des <button type="button" (click)="jump.emit(4)">neurones</button> la retravaillent, couche après couche, <button type="button" (click)="jump.emit(6)">à très grande échelle</button>. Et de ce seul jeu émergent des méthodes que personne n’a écrites.</p>
       </div>
     </section>
 
     <section class="moment solo">
       <div class="finale">
-        <p>Un jeu de devinettes. Une carte. Une pente. Des regards.</p>
+        <p>Un jeu de devinettes. Une carte. Une pente. Des neurones. Des regards.</p>
         <h2>Rien d’autre. Et pourtant.</h2>
       </div>
     </section>

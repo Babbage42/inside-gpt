@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, computed, input, signal } from '@angular/core';
-import { BarRow, Bars, Chapter, FrameLoop, big, pct } from '../shared';
-import { DRINKS, LAST, LookupModel, NAMES, Puzzle, Trace, VOCAB, fixedPuzzles, isHeldOut, makePuzzle } from '../engine/lookup';
+import { BarRow, Bars, Capot, Chapter, FrameLoop, big, pct } from '../shared';
+import { CapotArc } from './capot-arc';
+import { DRINKS, LAST, LookupModel, NAMES, Puzzle, Trace, VOCAB, fixedPuzzles, isHeldOut, makePuzzle, trainedLookup } from '../engine/lookup';
 
 const TOTAL = 2000;
 const X = (i: number) => 62 + i * 96.5;
@@ -63,10 +64,10 @@ export class Fiche {
 
 @Component({
   selector: 'v4-ch-attention',
-  imports: [Bars, Fiche],
+  imports: [Bars, Capot, CapotArc, Fiche],
   template: `
     <header class="hero">
-      <p class="kicker">Chapitre 5 · Le regard</p>
+      <p class="kicker">Chapitre 6 · Le regard</p>
       <h1>Les mots apprennent à <em>se regarder</em></h1>
       <p class="lede">Voici la pièce qui a tout changé en 2017 : l’attention. Tu vas la voir naître, puis ouvrir le modèle pour lire la méthode qu’il a trouvée seul.</p>
     </header>
@@ -100,7 +101,7 @@ export class Fiche {
         <div class="prose">
           <h2>L’attention, en trois idées</h2>
           <p>Dans un transformer, chaque mot peut <strong>consulter les mots qui le précèdent</strong> et recopier une partie de ce qu’ils contiennent.</p>
-          <p>Qui regarde qui ? Rien n’est écrit d’avance. Ce sont, encore une fois, des <strong>réglages</strong>, ajustés par la même descente de pente qu’au chapitre précédent.</p>
+          <p>Qui regarde qui ? Rien n’est écrit d’avance. Ce sont, encore une fois, des <strong>réglages</strong>, ajustés par la même descente de pente qu’au chapitre 4.</p>
           <p>Notre modèle a <strong>deux couches</strong> : les mots se regardent une première fois, puis une seconde, en profitant de ce qu’ils ont appris au premier tour.</p>
           @if (step() === 1) { <button type="button" class="primary" (click)="reveal(2, 'att-train')">Entraînons-le</button> }
         </div>
@@ -187,6 +188,9 @@ export class Fiche {
           </div>
         </div>
       </section>
+      <v4-capot label="L’intérieur d’un regard : questions, étiquettes, contenus">
+        <ng-template><v4-capot-arc [model]="model" [puzzle]="custom()" [tick]="steps()" /></ng-template>
+      </v4-capot>
       <section class="moment solo">
         <div class="takeaway">
           <p class="tiny">À retenir</p>
@@ -209,7 +213,7 @@ export class ChAttention extends Chapter implements OnDestroy {
   /** Léa café · Paul jus · Hugo thé · ? Paul. Le couple Paul + jus est réservé au test. */
   readonly example = makePuzzle([0, 1, 2], [1, 3, 0], 1);
 
-  private model = new LookupModel(7, 24, 2, 0.004, 0.2);
+  model = new LookupModel(7, 24, 2, 0.004, 0.2);
   readonly parameters = this.model.parameterCount;
   private readonly seen = fixedPuzzles('train', 50, 98);
   private readonly unseen = fixedPuzzles('test', 50, 99);
@@ -278,6 +282,7 @@ export class ChAttention extends Chapter implements OnDestroy {
           this.scores.update((s) => [...s, [this.model.accuracy(this.seen), this.model.accuracy(this.unseen)]]);
       }
       this.steps.set(this.model.steps);
+      if (this.model.steps >= TOTAL) trainedLookup.model = this.model;
       return this.model.steps < TOTAL;
     });
   }

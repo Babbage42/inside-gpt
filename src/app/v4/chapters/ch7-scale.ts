@@ -1,5 +1,6 @@
 import { Component, OnDestroy, computed, signal } from '@angular/core';
-import { Chapter, big } from '../shared';
+import { Capot, Chapter, big } from '../shared';
+import { CapotTrace } from './capot-trace';
 
 interface Part {
   readonly name: string;
@@ -10,8 +11,8 @@ interface Part {
 const PARTS: readonly Part[] = [
   { name: 'Découper', text: 'Le texte est coupé en morceaux appelés tokens : les mots courants entiers, les mots rares en plusieurs pièces. Un modèle en connaît des dizaines de milliers.', seen: 'Nouveau' },
   { name: 'Placer', text: 'Chaque token est remplacé par sa position dans un espace à des milliers de dimensions, à laquelle on ajoute sa place dans la phrase.', seen: 'Chapitre 3 · la carte' },
-  { name: 'Regarder', text: 'Chaque token consulte les précédents et recopie ce qui l’intéresse. Les grands modèles lancent des dizaines de regards différents en parallèle.', seen: 'Chapitre 5 · l’attention' },
-  { name: 'Transformer', text: 'Chaque token retravaille ensuite ce qu’il a recueilli dans un petit réseau de neurones. On pense qu’une bonne part des connaissances du modèle est rangée là.', seen: 'Nouveau' },
+  { name: 'Regarder', text: 'Chaque token consulte les précédents et recopie ce qui l’intéresse. Les grands modèles lancent des dizaines de regards différents en parallèle.', seen: 'Chapitre 6 · le regard' },
+  { name: 'Transformer', text: 'Chaque token retravaille ensuite ce qu’il a recueilli dans un réseau de neurones comme celui du chapitre 5, en bien plus large. On pense qu’une bonne part des connaissances du modèle est rangée là.', seen: 'Chapitre 5 · le neurone' },
   { name: 'Parier', text: 'La position finale du dernier token est convertie en une probabilité pour chaque token possible.', seen: 'Chapitres 1 et 2' },
   { name: 'Tirer', text: 'Un token est tiré selon ces probabilités, ajouté au texte, et tout recommence avec un token de plus.', seen: 'Chapitre 2 · la boucle' },
 ];
@@ -25,7 +26,7 @@ interface Model {
 }
 
 const MODELS: readonly Model[] = [
-  { name: 'Ton modèle du chapitre 5', parameters: 4464, layers: 2, context: 8, span: '1 h 14' },
+  { name: 'Ton modèle du chapitre 6', parameters: 4464, layers: 2, context: 8, span: '1 h 14' },
   { name: 'GPT-1 · 2018', parameters: 117e6, layers: 12, context: 512, span: '3,7 ans' },
   { name: 'GPT-2 · 2019', parameters: 1.5e9, layers: 48, context: 1024, span: '48 ans' },
   { name: 'GPT-3 · 2020', parameters: 175e9, layers: 96, context: 2048, span: '5 500 ans' },
@@ -35,9 +36,10 @@ const DRAFT = ['4 places à 12 € : 4 × 12 = 48 €.', 'Avec le bon : 48 − 1
 
 @Component({
   selector: 'v4-ch-scale',
+  imports: [Capot, CapotTrace],
   template: `
     <header class="hero">
-      <p class="kicker">Chapitre 6 · L’échelle</p>
+      <p class="kicker">Chapitre 7 · L’échelle</p>
       <h1>Le même mécanisme, <em>des milliards de fois</em></h1>
       <p class="lede">Tu connais maintenant toutes les pièces. Un grand modèle de langage ne contient presque rien d’autre : il en contient simplement beaucoup plus.</p>
     </header>
@@ -63,11 +65,15 @@ const DRAFT = ['4 places à 12 € : 4 × 12 = 48 €.', 'Avec le bon : 48 − 1
       @if (step() === 0) { <button type="button" class="primary center" (click)="reveal(1, 'scale-ladder')">Et la taille ?</button> }
     </section>
 
+    <v4-capot label="Suivre une fiche à travers toute la machine, nombre par nombre">
+      <ng-template><v4-capot-trace /></ng-template>
+    </v4-capot>
+
     @if (step() >= 1) {
       <section class="moment" id="scale-ladder">
         <div class="prose">
           <h2>Changer d’échelle</h2>
-          <p>Ton modèle du chapitre 5 a trouvé une méthode en deux étapes avec 2 couches et quelques milliers de réglages.</p>
+          <p>Ton modèle du chapitre 6 a trouvé une méthode en deux étapes avec 2 couches et quelques milliers de réglages.</p>
           <p>Entre lui et GPT-3, <strong>aucune idée fondamentalement nouvelle</strong> : plus de couches, plus de réglages, plus de texte. Chaque couche travaille sur le résultat de la précédente : des regards sur des regards, cent fois de suite.</p>
           <p class="do">Choisis un modèle pour mesurer l’écart.</p>
           <p class="aside">Les modèles actuels sont plus grands encore, mais leurs tailles ne sont plus toujours publiées.</p>

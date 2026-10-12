@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, Component, TemplateRef, contentChild, input, signal } from '@angular/core';
 import { Family } from './engine/word-map';
 
 export const FAMILY_COLOR: Record<Family, string> = {
@@ -82,4 +83,41 @@ export class Bars {
   readonly rows = input.required<readonly BarRow[]>();
   readonly scale = input(1);
   readonly pct = pct;
+}
+
+/** Section facultative « pour aller plus loin ». Son contenu n'est construit qu'à l'ouverture. */
+@Component({
+  selector: 'v4-capot',
+  imports: [NgTemplateOutlet],
+  template: `
+    <section class="capot" [class.open]="open()">
+      <button type="button" class="capot-toggle" [attr.aria-expanded]="open()" (click)="open.set(!open())">
+        <span class="capot-icon" aria-hidden="true">⚙</span>
+        <span class="capot-title"><small>{{ open() ? 'Capot ouvert' : 'Ouvrir le capot' }} · pour aller plus loin</small><strong>{{ label() }}</strong></span>
+        <span class="capot-chev" aria-hidden="true">{{ open() ? '−' : '+' }}</span>
+      </button>
+      @if (open()) { <div class="capot-body"><ng-container [ngTemplateOutlet]="body()" /></div> }
+    </section>
+  `,
+})
+export class Capot {
+  readonly label = input.required<string>();
+  readonly body = contentChild.required(TemplateRef);
+  readonly open = signal(false);
+}
+
+/** Un vecteur montré comme une bande de cases : orange si positif, bleu si négatif, vif si grand. */
+@Component({
+  selector: 'v4-strip',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `<span class="strip">@for (v of values(); track $index) { <i [style.background]="tone(v)" [title]="v.toFixed(2)"></i> }</span>`,
+})
+export class Strip {
+  readonly values = input.required<readonly number[]>();
+  readonly scale = input(2);
+
+  tone(value: number): string {
+    const strength = Math.min(1, Math.abs(value) / this.scale());
+    return value >= 0 ? `rgba(255, 180, 84, ${strength})` : `rgba(90, 209, 230, ${strength})`;
+  }
 }

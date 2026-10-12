@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, computed, signal, viewChild } from '@angular/core';
-import { BarRow, Bars, Chapter, FAMILY_COLOR, FrameLoop, big, num } from '../shared';
+import { BarRow, Bars, Capot, Chapter, FAMILY_COLOR, FrameLoop, big, num } from '../shared';
+import { CapotBackprop } from './capot-backprop';
 import { PAIRS, WORDS, WordMap, familyOf, wordId } from '../engine/word-map';
 import { MAP_DECAY, MAP_SEED, MAP_STEPS } from './ch3-map';
 
@@ -8,7 +9,7 @@ const GRID = 110;
 
 @Component({
   selector: 'v4-ch-descent',
-  imports: [Bars],
+  imports: [Bars, Capot, CapotBackprop],
   template: `
     <header class="hero">
       <p class="kicker">Chapitre 4 · La pente</p>
@@ -55,7 +56,7 @@ const GRID = 110;
       </div>
       <div class="stage" id="descent-map">
         <div class="terrain">
-          <canvas #relief [width]="grid" [height]="grid" [class.shown]="step() >= 1"></canvas>
+          <canvas #relief width="110" height="110" [class.shown]="step() >= 1"></canvas>
           <svg #board viewBox="-110 -110 220 220" (pointermove)="drag($event)" (pointerup)="release()" (pointerleave)="release()">
             @for (dot of others; track dot.word) {
               <g class="ghost" [attr.transform]="'translate(' + dot.x + ',' + dot.y + ')'">
@@ -85,7 +86,7 @@ const GRID = 110;
           <h2>Tous les réglages, en même temps</h2>
           <p>Tu viens de régler <strong>2 nombres</strong> : la position d’un mot. La carte complète en compte {{ mapCount }}, et l’entraînement les corrige tous à la fois, chacun selon sa propre pente.</p>
           <p>Un grand modèle de langage fait exactement la même chose, avec des <strong>centaines de milliards</strong> de réglages. Les calculs sont identiques ; seule l’échelle change.</p>
-          <p class="aside">Calculer d’un coup la pente de tous les réglages s’appelle la <strong>rétropropagation</strong>. L’idée : remonter le calcul de la prédiction à l’envers, en notant à chaque étape combien elle a pesé sur l’erreur. Pour refaire ces calculs à la main, nombre par nombre, <a href="/v3">le parcours V3</a> les détaille.</p>
+          <p class="aside">Calculer d’un coup la pente de tous les réglages s’appelle la <strong>rétropropagation</strong>. L’idée : remonter le calcul de la prédiction à l’envers, en notant à chaque étape combien elle a pesé sur l’erreur. Le capot ci-dessous la déroule sur ton lion.</p>
         </div>
         <div class="stage">
           <p class="tiny">Nombre de réglages corrigés à chaque pas</p>
@@ -97,22 +98,24 @@ const GRID = 110;
           </ul>
         </div>
       </section>
+      <v4-capot label="La rétropropagation : calculer toutes les pentes d’un coup">
+        <ng-template><v4-capot-backprop [model]="model" /></ng-template>
+      </v4-capot>
       <section class="moment solo">
         <div class="takeaway">
           <p class="tiny">À retenir</p>
           <p>Un réseau de neurones n’est pas programmé : il est <strong>réglé</strong>. On mesure son erreur, on calcule dans quel sens bouger chaque réglage pour la réduire, on fait un petit pas. Des milliards de fois.</p>
-          <p>Il manque une pièce. Notre carte ne regarde qu’<strong>un seul mot</strong> en arrière. Pour comprendre une phrase, il faut aller chercher la bonne information au bon endroit.</p>
+          <p>Mais que règle-t-on, au juste ? On répète « réseau de neurones » sans en avoir vu un seul. Ouvrons-en un.</p>
         </div>
       </section>
     }
   `,
 })
 export class ChDescent extends Chapter implements AfterViewInit, OnDestroy {
-  readonly grid = GRID;
   readonly num = num;
   readonly big = big;
   readonly loop = new FrameLoop();
-  private readonly model = this.trained();
+  readonly model = this.trained();
   private readonly extent = this.reach() * 1.25;
   readonly mapCount = WORDS.length * 5;
   readonly floor = this.valley();
