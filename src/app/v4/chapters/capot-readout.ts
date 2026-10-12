@@ -10,12 +10,9 @@ const VERBS = WORDS.filter((word) => familyOf(word) === 'verbe');
   template: `
     <div class="moment">
       <div class="prose">
-        <h3>1 · Chaque mot possible a sa flèche</h3>
-        <p>Tu as vu que chaque mot a une <strong>position</strong>. Le modèle range aussi, pour chaque mot qu’il pourrait proposer, une <strong>flèche</strong> : deux nombres de plus, réglés eux aussi par l’entraînement.</p>
-        <p class="aside">Un même mot a donc deux jeux de réglages : sa position quand on le <em>lit</em>, sa flèche quand on le <em>propose</em>.</p>
-        <h3>2 · Le score mesure l’alignement</h3>
-        <p>Pour noter un candidat, le modèle regarde si la position du mot lu <strong>pointe dans le sens de sa flèche</strong>. Sur le schéma : l’ombre du point projetée sur la flèche. Longue et dans le bon sens, le score est élevé. À contresens, il est négatif.</p>
-        <p class="do">Change le mot lu et le candidat pour voir l’ombre bouger.</p>
+        <h3>1 · Le vrai calcul, avec deux boutons</h3>
+        <p>Dans le modèle entraîné, le mot lu a deux boutons et chaque candidat aussi. La note s’obtient comme avec un seul : on multiplie bouton par bouton, et on additionne. S’y ajoute un <strong>bonus</strong> propre au candidat (son « biais »), qui traduit simplement qu’il est fréquent ou rare.</p>
+        <p class="do">Choisis un mot lu, puis un candidat.</p>
         <div class="chips">
           @for (w of readable; track w) { <button type="button" [class.on]="w === word()" [style.--tone]="tone(w)" (click)="word.set(w)">{{ w }}</button> }
         </div>
@@ -23,9 +20,14 @@ const VERBS = WORDS.filter((word) => familyOf(word) === 'verbe');
           @for (v of verbs; track v) { <button type="button" [class.on]="v === candidate()" style="--tone: #b39dff" (click)="candidate.set(v)">{{ v }}</button> }
         </div>
         <p class="formula">
-          score(« {{ candidate() }} ») = <span class="pos">{{ num(point()[0]) }}</span> × <span class="arr">{{ num(arrow()[0]) }}</span> + <span class="pos">{{ num(point()[1]) }}</span> × <span class="arr">{{ num(arrow()[1]) }}</span> + {{ num(bias()) }} = <strong>{{ num(score()) }}</strong>
+          note(« {{ candidate() }} ») = <span class="pos">{{ num(point()[0]) }}</span> × <span class="arr">{{ num(arrow()[0]) }}</span> + <span class="pos">{{ num(point()[1]) }}</span> × <span class="arr">{{ num(arrow()[1]) }}</span> + {{ num(bias()) }} = <strong>{{ num(score()) }}</strong>
         </p>
-        <p class="aside"><span class="pos">Position</span> de « {{ word() }} », <span class="arr">flèche</span> de « {{ candidate() }} », plus un biais propre au candidat (sa popularité de base). Ce calcul s’appelle un <strong>produit scalaire</strong>.</p>
+        <p class="aside">En <span class="pos">orange</span>, les deux boutons de « {{ word() }} ». En <span class="arr">violet</span>, les deux boutons de « {{ candidate() }} ». Même signe dans une case : la note monte. Signes opposés : elle baisse. Ce calcul s’appelle un <strong>produit scalaire</strong>.</p>
+        <p class="aside">Un même mot possède en réalité deux paires de boutons : une quand on le <em>lit</em>, une autre quand on le <em>propose</em>.</p>
+        <h3>2 · Le même calcul, dessiné</h3>
+        <p>Les deux boutons du mot lu sont un <strong>point</strong> sur la carte. Les deux boutons du candidat se dessinent en <strong>flèche</strong> partant du centre.</p>
+        <p>La note répond alors à une question visuelle : le point est-il loin <strong>dans le sens de la flèche</strong> ? Le trait épais le mesure : c’est jusqu’où le point arrive le long de la flèche. Vert, la note monte. Rouge, le point est derrière la flèche, et la note est négative.</p>
+        <p class="aside">Ce n’est pas un second calcul : c’est exactement la ligne ci-dessus, vue autrement.</p>
       </div>
       <div class="stage">
         <svg class="map" viewBox="-110 -110 220 220" role="img" aria-label="Position du mot lu et flèches des candidats">
@@ -39,14 +41,14 @@ const VERBS = WORDS.filter((word) => familyOf(word) === 'verbe');
           <circle [attr.cx]="view().x" [attr.cy]="view().y" r="4.5" [attr.fill]="tone(word())" stroke="#0d1326" />
           <text [attr.x]="view().x + 6" [attr.y]="view().y - 5" class="point-label">{{ word() }}</text>
         </svg>
-        <p class="legend"><span><i style="background:#b39dff"></i>flèches des 12 verbes</span><span><i style="background:#6ee7a8"></i>ombre dans le bon sens</span><span><i style="background:#ff8a8a"></i>à contresens</span></p>
+        <p class="legend"><span><i style="background:#b39dff"></i>flèches des 12 verbes</span><span><i style="background:#6ee7a8"></i>le point est dans le sens de la flèche</span><span><i style="background:#ff8a8a"></i>il est derrière</span></p>
       </div>
     </div>
 
     <div class="moment">
       <div class="prose">
         <h3>3 · Des scores aux pourcentages</h3>
-        <p>Les scores sont des nombres quelconques, parfois négatifs. Pour en faire des parts de 100 %, le modèle applique la fonction <strong>softmax</strong>, en deux temps :</p>
+        <p>Les notes (les spécialistes disent « scores ») sont des nombres quelconques, parfois négatifs. Pour en faire des parts de 100 %, le modèle applique la fonction <strong>softmax</strong>, en deux temps :</p>
         <p><strong>e<sup>score</sup></strong> rend tout positif et creuse les écarts ; puis on <strong>divise par le total</strong>.</p>
         <label class="slider">Température : <strong>{{ num(temperature(), 1) }}</strong>
           <input type="range" min="0.2" max="3" step="0.1" [value]="temperature()" (input)="temperature.set(+$any($event.target).value)" />

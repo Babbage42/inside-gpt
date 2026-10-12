@@ -14,13 +14,13 @@ const GRID = 110;
     <header class="hero">
       <p class="kicker">Chapitre 4 · La pente</p>
       <h1>Apprendre, c’est <em>descendre</em></h1>
-      <p class="lede">Le bouton « Entraîner » n’a rien de magique. Pour le comprendre, tu vas faire son travail à la main, sur un seul mot.</p>
+      <p class="lede">Au chapitre précédent, la machine essayait les deux sens pour chaque bouton. Voici la même idée vue de haut : tourner un bouton dans le bon sens, c’est descendre une pente.</p>
     </header>
 
     <section class="moment wide">
       <div class="prose">
         <h2>À toi de placer le lion</h2>
-        <p>Voici la carte entraînée. On a décroché le <strong>lion</strong> : il est posé n’importe où.</p>
+        <p>Voici la carte entraînée. On a décroché le <strong>lion</strong> : ses deux boutons sont remis au hasard, donc son point est posé n’importe où.</p>
         <p>À chaque phrase lue, on mesure la <strong>surprise</strong> de la machine : faible si elle donnait une bonne probabilité au vrai mot, forte sinon. Les spécialistes l’appellent la <em>perte</em>. Apprendre, c’est la faire baisser.</p>
         <p class="do">Fais glisser le lion. Cherche l’endroit où la surprise est la plus basse.</p>
         <div class="gauge">
@@ -40,7 +40,7 @@ const GRID = 110;
 
         @if (step() >= 2) {
           <h2 id="descent-machine">La machine ne voit pas le paysage</h2>
-          <p>Calculer tout le relief serait bien trop long. Elle connaît seulement <strong>la pente sous ses pieds</strong> : la flèche. Sa méthode tient en une ligne : faire un petit pas dans le sens de la descente, puis recommencer.</p>
+          <p>Calculer tout le relief serait bien trop long. Elle connaît seulement <strong>la pente sous ses pieds</strong> : la flèche. C’est la réponse, pour les deux boutons du lion à la fois, à la question « quel sens fait baisser la surprise ? ». Sa méthode tient en une ligne : faire un petit pas dans ce sens, puis recommencer.</p>
           <p>Cette pente s’appelle le <strong>gradient</strong>, et la méthode, la <strong>descente de gradient</strong>.</p>
           <label class="slider">Taille du pas : <strong>{{ paceLabel() }}</strong>
             <input type="range" min="0.2" max="8" step="0.1" [value]="pace()" (input)="pace.set(+$any($event.target).value)" />

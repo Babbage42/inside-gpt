@@ -76,7 +76,7 @@ interface Written {
           <h2>Premier mur : l’inattendu vaut l’absurde</h2>
           <p>« Le lion chasse » ne figure pas dans nos {{ sentences.length }} phrases. Pour la machine qui compte, c’est donc <strong>impossible</strong> : 0 %.</p>
           <p>« Le lion lit » ? 0 % aussi. Elle ne fait aucune différence entre une phrase qu’elle n’a pas encore croisée et une phrase absurde.</p>
-          <p>Toi, tu fais la différence, parce que tu sais qu’un lion <em>ressemble</em> à un renard. La machine qui compte ne sait pas ce qui se ressemble.</p>
+          <p>Toi, tu fais la différence, parce que tu sais qu’un lion <em>ressemble</em> à un loup. La machine qui compte ne sait pas ce qui se ressemble.</p>
           @if (step() === 2) { <button type="button" class="primary" (click)="reveal(3, 'count-explosion')">Et si on lui donnait plus de texte ?</button> }
         </div>
         <div class="stage">

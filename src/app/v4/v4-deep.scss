@@ -13,6 +13,19 @@
     .moment { border-top: 1px solid rgba(90, 209, 230, .2); padding: 30px 0; animation: none; }
     .stage { background: #0f1630; } }
 
+  .knobs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; }
+  .knob { background: var(--raise); border-radius: 12px; padding: 14px; display: grid; gap: 8px; strong { font-size: 30px; font-variant-numeric: tabular-nums; line-height: 1; } }
+  .dial { position: relative; height: 8px; border-radius: 4px; background: #0d1326; &::before { content: ''; position: absolute; left: 50%; top: -4px; width: 1px; height: 16px; background: var(--mute); }
+    i { position: absolute; top: -5px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--amber); border: 2px solid #1a1205; transition: left .3s; } }
+  .times { font-size: 28px; color: var(--mute); }
+  .note-box { margin-top: 16px; padding: 16px; border-radius: 12px; background: #0d1326; border: 1px solid var(--line); display: grid; gap: 6px; transition: border-color .3s;
+    strong { font-size: 46px; line-height: 1.05; font-variant-numeric: tabular-nums; } small { color: var(--mute); font-variant-numeric: tabular-nums; }
+    &.good { border-color: var(--good); strong { color: var(--good); } .note-track i { background: var(--good); } } &.bad { border-color: var(--bad); strong { color: var(--bad); } .note-track i { background: var(--bad); } } }
+  .note-track { position: relative; height: 10px; border-radius: 5px; background: var(--raise); &::before { content: ''; position: absolute; left: 50%; top: -3px; width: 1px; height: 16px; background: var(--mute); } i { position: absolute; top: 0; height: 100%; border-radius: 5px; transition: left .3s, width .3s; } }
+  table.tries { width: 100%; border-collapse: collapse; margin: 0 0 16px; font-size: 15px; th, td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: left; font-weight: 400; font-variant-numeric: tabular-nums; }
+    button { padding: 4px 12px; font-size: 14px; } .good { color: var(--good); } .bad { color: var(--bad); } }
+  .meters.spaced { margin-top: 16px; }
+
   .prose h3 { font-size: 18px; font-weight: 650; margin: 0 0 8px; color: var(--cyan); &:not(:first-child) { margin-top: 26px; } }
   .prose .wide, .aside.wide { max-width: 860px; margin: 0 auto; font-size: 16px; color: #c0c8e2; border-left: 3px solid var(--cyan); padding-left: 16px; }
   .formula { font-variant-numeric: tabular-nums; background: #0d1326; border-radius: 10px; padding: 12px 14px; font-size: 15.5px; line-height: 1.9; strong { color: var(--amber); font-size: 18px; } }
