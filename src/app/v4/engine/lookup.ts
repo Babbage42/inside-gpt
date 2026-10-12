@@ -109,7 +109,7 @@ export class LookupModel {
   }
 
   /** skip : numéro d'une couche à débrancher (son apport n'est pas ajouté), pour les expériences d'ablation. */
-  private forward(ids: readonly number[], tape: Tape, skip = -1): { logits: Mat; attention: Mat[]; steps: LayerMats[]; stream: Mat[]; token: Mat } {
+  private forward(ids: readonly number[], tape: Tape, skip: number | readonly number[] = -1): { logits: Mat; attention: Mat[]; steps: LayerMats[]; stream: Mat[]; token: Mat } {
     const token = tape.pick(this.tok, ids);
     let x = tape.add(token, this.pos);
     const attention: Mat[] = [], steps: LayerMats[] = [], stream: Mat[] = [x];
@@ -120,7 +120,7 @@ export class LookupModel {
       const added = tape.matmul(weights, value);
       attention.push(weights);
       steps.push({ query, key, value, score, added });
-      if (l !== skip) x = tape.add(x, added);
+      if (typeof skip === 'number' ? l !== skip : !skip.includes(l)) x = tape.add(x, added);
       stream.push(x);
     }
     return { logits: tape.matmul(tape.pick(x, [LAST]), this.out), attention, steps, stream, token };
@@ -141,14 +141,33 @@ export class LookupModel {
     return total / batch;
   }
 
-  run(puzzle: Puzzle, skip = -1): Trace {
+  run(puzzle: Puzzle, skip: number | readonly number[] = -1): Trace {
     const { logits, attention } = this.forward(puzzle.ids, new Tape(), skip);
     return { probs: softmaxRow(logits, 0), attention: attention.map(rowsOf) };
   }
 
+  private get parameters(): Mat[] {
+    return [this.tok, this.pos, ...this.wq, ...this.wk, ...this.wv, this.out];
+  }
+
+  /** Copie de tous les réglages à cet instant de l'entraînement. */
+  snapshot(): Float32Array[] {
+    return this.parameters.map((m) => m.data.slice());
+  }
+
+  /** Remet le modèle dans l'état d'un instantané. */
+  load(snapshot: readonly Float32Array[]): void {
+    this.parameters.forEach((m, i) => m.data.set(snapshot[i]));
+  }
+
+  /** La table des boutons : une ligne de réglages par token du vocabulaire. */
+  embeddingTable(): number[][] {
+    return rowsOf(this.tok);
+  }
+
   /** Toutes les valeurs intermédiaires du calcul, pour ouvrir le capot. */
-  inspect(puzzle: Puzzle): Inspection {
-    const { logits, attention, steps, stream, token } = this.forward(puzzle.ids, new Tape());
+  inspect(puzzle: Puzzle, skip: number | readonly number[] = -1): Inspection {
+    const { logits, attention, steps, stream, token } = this.forward(puzzle.ids, new Tape(), skip);
     const scale = 1 / Math.sqrt(this.width);
     return {
       token: rowsOf(token),
@@ -167,14 +186,14 @@ export class LookupModel {
     };
   }
 
-  answer(puzzle: Puzzle, skip = -1): number {
+  answer(puzzle: Puzzle, skip: number | readonly number[] = -1): number {
     const { probs } = this.run(puzzle, skip);
     let best = 0;
     for (let j = 1; j < probs.length; j++) if (probs[j] > probs[best]) best = j;
     return best;
   }
 
-  accuracy(puzzles: readonly Puzzle[], skip = -1): number {
+  accuracy(puzzles: readonly Puzzle[], skip: number | readonly number[] = -1): number {
     return puzzles.filter((p) => this.answer(p, skip) === p.target).length / puzzles.length;
   }
 }

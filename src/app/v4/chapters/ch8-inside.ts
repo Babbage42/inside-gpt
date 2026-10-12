@@ -73,9 +73,9 @@ import { Chapter } from '../shared';
     </section>
 
     <section class="moment solo">
-      <div class="finale">
-        <p>Un jeu de devinettes. Une carte. Une pente. Des neurones. Des regards.</p>
-        <h2>Rien d’autre. Et pourtant.</h2>
+      <div class="takeaway">
+        <p class="tiny">Pour finir</p>
+        <p>Tu as vu chaque pièce séparément. Il reste à les voir tourner <strong>ensemble</strong>, d’un seul tenant, et à mesurer ce que représente vraiment un grand modèle.</p>
       </div>
     </section>
   `,
