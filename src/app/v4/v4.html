@@ -18,7 +18,8 @@
       @case (5) { <v4-ch-attention /> }
       @case (6) { <v4-ch-scale /> }
       @case (7) { <v4-ch-inside (jump)="go($event)" /> }
-      @case (8) { <v4-ch-machine /> }
+      @case (8) { <v4-ch-build (jump)="go($event)" /> }
+      @case (9) { <v4-ch-machine (jump)="go($event)" /> }
     }
   </main>
 

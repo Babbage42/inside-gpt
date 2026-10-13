@@ -1,0 +1,187 @@
+{
+ "config": {
+  "vocab": 67,
+  "context": 24,
+  "width": 48,
+  "layers": 0,
+  "heads": 1,
+  "hidden": 0,
+  "positions": false
+ },
+ "seed": 1,
+ "batch": 16,
+ "parameters": 6432,
+ "seconds": 11,
+ "report": [
+  {
+   "step": 0,
+   "loss": 4.204692619390966,
+   "scores": {
+    "vérité": 0,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.2
+   }
+  },
+  {
+   "step": 25,
+   "loss": 4.448414803576648,
+   "scores": {
+    "vérité": 0,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.2
+   }
+  },
+  {
+   "step": 50,
+   "loss": 4.027223155822875,
+   "scores": {
+    "vérité": 0,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.2
+   }
+  },
+  {
+   "step": 100,
+   "loss": 3.1376983128768616,
+   "scores": {
+    "vérité": 0,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.2
+   }
+  },
+  {
+   "step": 150,
+   "loss": 2.468414400089408,
+   "scores": {
+    "vérité": 0.013333333333333334,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.2
+   }
+  },
+  {
+   "step": 200,
+   "loss": 2.0205398512037007,
+   "scores": {
+    "vérité": 0.02666666666666667,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.2
+   }
+  },
+  {
+   "step": 300,
+   "loss": 1.6005550753366304,
+   "scores": {
+    "vérité": 0.04666666666666667,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.2
+   }
+  },
+  {
+   "step": 400,
+   "loss": 1.4542142957121114,
+   "scores": {
+    "vérité": 0,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.2
+   }
+  },
+  {
+   "step": 550,
+   "loss": 1.3891899577566478,
+   "scores": {
+    "vérité": 0.06666666666666667,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.3
+   }
+  },
+  {
+   "step": 700,
+   "loss": 1.3727441258891986,
+   "scores": {
+    "vérité": 0.04666666666666667,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.3
+   }
+  },
+  {
+   "step": 900,
+   "loss": 1.3654481861640209,
+   "scores": {
+    "vérité": 0.03333333333333333,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.5
+   }
+  },
+  {
+   "step": 1200,
+   "loss": 1.3569899147975688,
+   "scores": {
+    "vérité": 0.04666666666666667,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.5
+   }
+  },
+  {
+   "step": 1600,
+   "loss": 1.3509195550187074,
+   "scores": {
+    "vérité": 0.04,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.5
+   }
+  },
+  {
+   "step": 2200,
+   "loss": 1.3476550835252636,
+   "scores": {
+    "vérité": 0.02666666666666667,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.6
+   }
+  },
+  {
+   "step": 3200,
+   "loss": 1.3470755731055073,
+   "scores": {
+    "vérité": 0.06666666666666667,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.6
+   }
+  },
+  {
+   "step": 4500,
+   "loss": 1.3441192134321838,
+   "scores": {
+    "vérité": 0.06666666666666667,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.7
+   }
+  },
+  {
+   "step": 6000,
+   "loss": 1.3506310628085656,
+   "scores": {
+    "vérité": 0.1,
+    "fil": 0,
+    "question": 0,
+    "accord": 0.7
+   }
+  }
+ ]
+}

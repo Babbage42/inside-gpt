@@ -75,7 +75,7 @@ import { Chapter } from '../shared';
     <section class="moment solo">
       <div class="takeaway">
         <p class="tiny">Pour finir</p>
-        <p>Tu as vu chaque pièce séparément. Il reste à les voir tourner <strong>ensemble</strong>, d’un seul tenant, et à mesurer ce que représente vraiment un grand modèle.</p>
+        <p>Tu as vu chaque pièce séparément. Il reste à les <strong>assembler</strong> en un vrai petit modèle de langage, une pièce à la fois, puis à le regarder tourner d’un seul tenant.</p>
       </div>
     </section>
   `,

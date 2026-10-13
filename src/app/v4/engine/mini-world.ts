@@ -80,10 +80,25 @@ export function trainingText(rng: Rng): Words {
   return text;
 }
 
-export type Skill = 'question' | 'accord';
+export type Skill = 'question' | 'accord' | 'fil';
 
-/** Les épreuves : uniquement des cas absents de l'entraînement. */
+/**
+ * Les épreuves. 'question' et 'accord' ne contiennent que des cas absents de l'entraînement.
+ * 'fil' pose une question juste après une phrase sur un autre animal : il faut ne pas les mélanger.
+ */
 export function exam(skill: Skill): Case[] {
+  if (skill === 'fil') {
+    const rng = new Rng(8), cases: Case[] = [];
+    while (cases.length < 60) {
+      const first = rng.int(ANIMALS.length), second = rng.int(ANIMALS.length), a = ANIMALS[first], b = ANIMALS[second];
+      const told = TOPICS[rng.int(3)], asked = TOPICS[rng.int(3)], plural = rng.next() < 0.4;
+      if (NEVER_ASKED.includes(second) || (plural && unreadPlural(second, asked)) || unreadPlural(first, told)) continue;
+      // La bonne réponse doit différer de celle qu'on donnerait pour l'animal de la première phrase.
+      if (answers(a, asked, plural).join(' ') === answers(b, asked, plural).join(' ')) continue;
+      cases.push({ prompt: [...states(a, told, false), ...asks(b, asked, plural)], answer: answers(b, asked, plural) });
+    }
+    return cases;
+  }
   if (skill === 'question')
     return NEVER_ASKED.flatMap((i) => TOPICS.flatMap((topic) => [false, true].map((plural) => ({ prompt: asks(ANIMALS[i], topic, plural), answer: answers(ANIMALS[i], topic, plural) }))));
   return NEVER_PLURAL.flatMap(([i, topic]) => {
@@ -98,6 +113,21 @@ const TRUTHS = new Set(
   ANIMALS.flatMap((a) => TOPICS.flatMap((topic) => [guesses(a, topic), ...[false, true].flatMap((plural) => [states(a, topic, plural), [...asks(a, topic, plural), ...answers(a, topic, plural)]])])).map((words) => words.join(' ')),
 );
 export const isTrue = (words: readonly string[]): boolean => TRUTHS.has(words.join(' '));
+
+const ANIMAL_WORDS = new Set(ANIMALS.flatMap((a) => [a.name, a.plural]));
+const VERB_WORDS = new Set<string>(['vit', 'vivent', 'mange', 'mangent', 'fait', 'font', ...Object.entries(MOVES).flat()]);
+const PLACE_WORDS = new Set(ANIMALS.flatMap((a) => [a.habitat, a.food[a.food.length - 1]]));
+
+/** La famille d'un mot, pour décrire ce qu'un regard va chercher. */
+export function kindOf(word: string): string {
+  if (ANIMAL_WORDS.has(word)) return 'l’animal';
+  if (VERB_WORDS.has(word)) return 'le verbe';
+  if (PLACE_WORDS.has(word)) return 'un lieu ou une nourriture';
+  if (word === 'où' || word === 'que' || word === 'qui') return 'le mot interrogatif';
+  if (word === '.' || word === '?') return 'la ponctuation';
+  if (word === 'il' || word === 'elle' || word === 'ils' || word === 'elles') return 'un pronom';
+  return 'les petits mots (le, la, dans…)';
+}
 
 /** Les mots par lesquels une phrase de ce monde peut commencer. */
 export const OPENERS = ['le', 'la', 'les', 'où', 'que', 'qui'] as const;

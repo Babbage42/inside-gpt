@@ -7,14 +7,15 @@ import { ChNeuron } from './chapters/ch5-neuron';
 import { ChAttention } from './chapters/ch6-attention';
 import { ChScale } from './chapters/ch7-scale';
 import { ChInside } from './chapters/ch8-inside';
-import { ChMachine } from './chapters/ch9-machine';
+import { ChBuild } from './chapters/ch9-build';
+import { ChMachine } from './chapters/ch10-machine';
 
 const STORAGE_KEY = 'gradient-lab-v4';
-const CHAPTERS = ['Le pari', 'Compter', 'La carte', 'La pente', 'Le neurone', 'Le regard', 'L’échelle', 'L’intérieur', 'La machine'];
+const CHAPTERS = ['Le pari', 'Compter', 'La carte', 'La pente', 'Le neurone', 'Le regard', 'L’échelle', 'L’intérieur', 'L’assemblage', 'La machine'];
 
 @Component({
   selector: 'app-root',
-  imports: [ChGame, ChCount, ChMap, ChDescent, ChNeuron, ChAttention, ChScale, ChInside, ChMachine],
+  imports: [ChGame, ChCount, ChMap, ChDescent, ChNeuron, ChAttention, ChScale, ChInside, ChBuild, ChMachine],
   templateUrl: './v4.html',
   styleUrls: ['./v4.scss', './v4-deep.scss'],
   encapsulation: ViewEncapsulation.None,

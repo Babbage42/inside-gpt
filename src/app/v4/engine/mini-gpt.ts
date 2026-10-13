@@ -4,10 +4,15 @@ export interface MiniConfig {
   readonly vocab: number;
   readonly context: number;
   readonly width: number;
+  /** Nombre de couches « regard + neurones ». 0 : le modèle ne voit que le dernier mot. */
   readonly layers: number;
   readonly heads: number;
-  /** Nombre de neurones du réseau placé après chaque regard. */
+  /** Nombre de neurones du réseau placé après chaque regard. 0 : pas de neurones. */
   readonly hidden: number;
+  /** false : le modèle ignore la place des mots dans le texte. */
+  readonly positions?: boolean;
+  /** false : pas de remise à l'échelle des bandes. */
+  readonly norm?: boolean;
 }
 
 interface Block {
@@ -15,17 +20,38 @@ interface Block {
   readonly key: Mat[];
   readonly value: Mat[];
   readonly merge: Mat;
-  readonly up: Mat;
-  readonly upBias: Mat;
-  readonly down: Mat;
-  readonly downBias: Mat;
+  readonly up?: Mat;
+  readonly upBias?: Mat;
+  readonly down?: Mat;
+  readonly downBias?: Mat;
+}
+
+/** Ce qu'on débranche pour une expérience : des couches entières, ou des regards précis [couche, tête]. */
+export interface Cut {
+  readonly layers?: readonly number[];
+  readonly heads?: readonly (readonly [number, number])[];
+}
+
+export interface HeadTrace {
+  /** attention[mot qui regarde][mot regardé] */
+  readonly attention: number[][];
+  /** La question que pose chaque mot, et l'étiquette et le contenu qu'il offre. */
+  readonly query: number[][];
+  readonly key: number[][];
+  readonly value: number[][];
+  /** Ressemblance question·étiquette, déjà divisée par √(taille de la tête). */
+  readonly score: number[][];
 }
 
 export interface LayerTrace {
-  /** attention[tête][mot qui regarde][mot regardé] */
-  readonly attention: number[][][];
-  /** Activité des neurones pour chaque mot, après le pli. */
+  readonly heads: HeadTrace[];
+  /** Ce que les regards ajoutent à la bande de chaque mot. */
+  readonly looked: number[][];
+  /** Somme pondérée de chaque neurone, avant le pli, puis son activité après le pli. */
+  readonly sums: number[][];
   readonly neurons: number[][];
+  /** Ce que les neurones ajoutent à la bande de chaque mot. */
+  readonly thought: number[][];
 }
 
 export interface MiniTrace {
@@ -34,6 +60,13 @@ export interface MiniTrace {
   readonly layers: LayerTrace[];
   /** Notes de chaque mot du vocabulaire pour la suite du dernier mot. */
   readonly logits: number[];
+  /** Les mêmes notes si on lisait la réponse plus tôt : à l'entrée, puis après chaque couche. */
+  readonly lens: number[][];
+}
+
+interface Watch {
+  readonly stream: Mat[];
+  readonly layers: { heads: { attention: Mat; query: Mat; key: Mat; value: Mat; score: Mat }[]; looked: Mat; sums?: Mat; neurons?: Mat; thought?: Mat }[];
 }
 
 const rowsOf = (m: Mat): number[][] => Array.from({ length: m.rows }, (_, r) => Array.from(m.data.subarray(r * m.cols, (r + 1) * m.cols)));
@@ -41,11 +74,12 @@ const rowsOf = (m: Mat): number[][] => Array.from({ length: m.rows }, (_, r) => 
 /**
  * Un transformer de type GPT, en miniature : embeddings de mots et de places, puis des couches
  * « regard à plusieurs têtes + réseau de neurones », chacune précédée d'une remise à l'échelle.
+ * Chaque pièce peut être retirée par la configuration, pour mesurer ce qu'elle apporte.
  */
 export class MiniGpt {
   readonly config: MiniConfig;
   private readonly tok: Mat;
-  private readonly pos: Mat;
+  private readonly pos?: Mat;
   private readonly blocks: Block[] = [];
   private readonly out: Mat;
   private readonly adam: Adam;
@@ -59,25 +93,27 @@ export class MiniGpt {
     // et sorties des regards et des neurones presque nulles (sinon elles noient le mot sous du bruit).
     const quiet = 0.2;
     this.tok = randomMat(vocab, width, 0.7, rng);
-    this.pos = randomMat(context, width, 0.7, rng);
-    for (let l = 0; l < layers; l++)
-      this.blocks.push({
-        query: Array.from({ length: heads }, () => randomMat(width, head, scale, rng)),
-        key: Array.from({ length: heads }, () => randomMat(width, head, scale, rng)),
-        value: Array.from({ length: heads }, () => randomMat(width, head, scale, rng)),
-        merge: randomMat(width, width, scale * quiet, rng),
-        up: randomMat(width, hidden, scale, rng),
-        upBias: new Mat(1, hidden),
-        down: randomMat(hidden, width, (1 / Math.sqrt(hidden)) * quiet, rng),
-        downBias: new Mat(1, width),
-      });
+    if (config.positions !== false) this.pos = randomMat(context, width, 0.7, rng);
+    for (let l = 0; l < layers; l++) {
+      const query = Array.from({ length: heads }, () => randomMat(width, head, scale, rng));
+      const key = Array.from({ length: heads }, () => randomMat(width, head, scale, rng));
+      const value = Array.from({ length: heads }, () => randomMat(width, head, scale, rng));
+      const merge = randomMat(width, width, scale * quiet, rng);
+      if (!hidden) {
+        this.blocks.push({ query, key, value, merge });
+        continue;
+      }
+      const up = randomMat(width, hidden, scale, rng), down = randomMat(hidden, width, (1 / Math.sqrt(hidden)) * quiet, rng);
+      this.blocks.push({ query, key, value, merge, up, upBias: new Mat(1, hidden), down, downBias: new Mat(1, width) });
+    }
     this.out = randomMat(width, vocab, scale, rng);
     this.adam = new Adam(this.parameters, lr, decay);
   }
 
   /** Tous les réglages, dans un ordre fixe : c'est aussi l'ordre du fichier de poids. */
   get parameters(): Mat[] {
-    return [this.tok, this.pos, ...this.blocks.flatMap((b) => [...b.query, ...b.key, ...b.value, b.merge, b.up, b.upBias, b.down, b.downBias]), this.out];
+    const blocks = this.blocks.flatMap((b) => [...b.query, ...b.key, ...b.value, b.merge, ...(b.up ? [b.up, b.upBias!, b.down!, b.downBias!] : [])]);
+    return [this.tok, ...(this.pos ? [this.pos] : []), ...blocks, this.out];
   }
 
   get parameterCount(): number {
@@ -88,27 +124,47 @@ export class MiniGpt {
     return rowsOf(this.tok);
   }
 
-  /** off : numéros des couches débranchées. watch : garde les valeurs intermédiaires. */
-  private forward(ids: readonly number[], tape: Tape, off: readonly number[] = [], watch?: { stream: Mat[]; layers: { attention: Mat[]; neurons: Mat }[] }): Mat {
-    const { width, heads } = this.config, positions = ids.map((_, i) => i), sharp = 1 / Math.sqrt(width / heads);
-    let x = tape.add(tape.pick(this.tok, ids), tape.pick(this.pos, positions));
+  /** Le nombre de multiplications d'un passage sur un texte de cette longueur. */
+  multiplications(length: number): number {
+    const { width, layers, heads, hidden, vocab } = this.config, head = width / heads;
+    const look = heads * (3 * length * width * head + 2 * length * length * head) + length * width * width;
+    return layers * (look + 2 * length * width * hidden) + length * width * vocab;
+  }
+
+  private forward(ids: readonly number[], tape: Tape, cut: Cut = {}, watch?: Watch): Mat {
+    const { width, heads } = this.config, sharp = 1 / Math.sqrt(width / heads);
+    const norm = (m: Mat) => (this.config.norm === false ? m : tape.layerNorm(m));
+    const word = tape.pick(this.tok, ids);
+    let x = this.pos ? tape.add(word, tape.pick(this.pos, ids.map((_, i) => i))) : word;
     watch?.stream.push(x);
     this.blocks.forEach((block, l) => {
-      const seen = tape.layerNorm(x), attention: Mat[] = [];
+      if (cut.layers?.includes(l)) {
+        watch?.stream.push(x);
+        watch?.layers.push({ heads: [], looked: new Mat(x.rows, width) });
+        return;
+      }
+      const seen = norm(x), traces: Watch['layers'][number]['heads'] = [];
       const gathered = block.query.map((_, h) => {
-        const weights = tape.softmax(tape.matmul(tape.matmul(seen, block.query[h]), tape.matmul(seen, block.key[h]), true), sharp, true);
-        attention.push(weights);
-        return tape.matmul(weights, tape.matmul(seen, block.value[h]));
+        const query = tape.matmul(seen, block.query[h]), key = tape.matmul(seen, block.key[h]), value = tape.matmul(seen, block.value[h]);
+        const score = tape.matmul(query, key, true), attention = tape.softmax(score, sharp, true);
+        traces.push({ attention, query, key, value, score });
+        // Un regard débranché n'apporte rien : sa part du mélange reste à zéro.
+        return cut.heads?.some(([cl, ch]) => cl === l && ch === h) ? new Mat(x.rows, width / heads) : tape.matmul(attention, value);
       });
       const looked = tape.matmul(tape.join(gathered), block.merge);
-      const afterLook = off.includes(l) ? x : tape.add(x, looked);
-      const neurons = tape.relu(tape.addRow(tape.matmul(tape.layerNorm(afterLook), block.up), block.upBias));
-      const thought = tape.addRow(tape.matmul(neurons, block.down), block.downBias);
-      x = off.includes(l) ? x : tape.add(afterLook, thought);
+      x = tape.add(x, looked);
+      if (!block.up) {
+        watch?.stream.push(x);
+        watch?.layers.push({ heads: traces, looked });
+        return;
+      }
+      const sums = tape.addRow(tape.matmul(norm(x), block.up), block.upBias!), neurons = tape.relu(sums);
+      const thought = tape.addRow(tape.matmul(neurons, block.down!), block.downBias!);
+      x = tape.add(x, thought);
       watch?.stream.push(x);
-      watch?.layers.push({ attention, neurons });
+      watch?.layers.push({ heads: traces, looked, sums, neurons, thought });
     });
-    return tape.matmul(tape.layerNorm(x), this.out);
+    return tape.matmul(norm(x), this.out);
   }
 
   /**
@@ -156,16 +212,16 @@ export class MiniGpt {
   }
 
   /** Notes du mot suivant, pour chaque mot du vocabulaire. */
-  scores(ids: readonly number[], off: readonly number[] = []): Float32Array {
-    const logits = this.forward(ids, new Tape(), off), v = this.config.vocab;
+  scores(ids: readonly number[], cut: Cut = {}): Float32Array {
+    const logits = this.forward(ids, new Tape(), cut), v = this.config.vocab;
     return logits.data.slice((logits.rows - 1) * v, logits.rows * v);
   }
 
   /** Complète en prenant à chaque fois le mot le mieux noté. */
-  complete(ids: readonly number[], count: number): number[] {
+  complete(ids: readonly number[], count: number, cut: Cut = {}): number[] {
     const text = [...ids];
     for (let n = 0; n < count && text.length < this.config.context; n++) {
-      const scores = this.scores(text);
+      const scores = this.scores(text, cut);
       let best = 0;
       for (let j = 1; j < scores.length; j++) if (scores[j] > scores[best]) best = j;
       text.push(best);
@@ -173,18 +229,32 @@ export class MiniGpt {
     return text.slice(ids.length);
   }
 
-  probabilities(ids: readonly number[]): Float32Array {
-    const logits = this.forward(ids, new Tape());
+  probabilities(ids: readonly number[], cut: Cut = {}): Float32Array {
+    const logits = this.forward(ids, new Tape(), cut);
     return softmaxRow(logits, logits.rows - 1);
   }
 
-  trace(ids: readonly number[], off: readonly number[] = []): MiniTrace {
-    const watch = { stream: [] as Mat[], layers: [] as { attention: Mat[]; neurons: Mat }[] };
-    const logits = this.forward(ids, new Tape(), off, watch), v = this.config.vocab;
+  /** Toutes les valeurs intermédiaires du calcul, pour ouvrir la machine. */
+  trace(ids: readonly number[], cut: Cut = {}): MiniTrace {
+    const watch: Watch = { stream: [], layers: [] };
+    const logits = this.forward(ids, new Tape(), cut, watch), v = this.config.vocab, last = ids.length - 1;
+    // Lire la réponse plus tôt : on applique la lecture finale à la bande du dernier mot, à chaque étage.
+    const lens = watch.stream.map((state) => {
+      const tape = new Tape(), row = tape.pick(state, [last]);
+      return Array.from(tape.matmul(this.config.norm === false ? row : tape.layerNorm(row), this.out).data);
+    });
+    const empty: number[][] = [];
     return {
       stream: watch.stream.map(rowsOf),
-      layers: watch.layers.map((layer) => ({ attention: layer.attention.map(rowsOf), neurons: rowsOf(layer.neurons) })),
-      logits: Array.from(logits.data.subarray((logits.rows - 1) * v, logits.rows * v)),
+      layers: watch.layers.map((layer) => ({
+        heads: layer.heads.map((h) => ({ attention: rowsOf(h.attention), query: rowsOf(h.query), key: rowsOf(h.key), value: rowsOf(h.value), score: rowsOf(h.score).map((r) => r.map((s) => s / Math.sqrt(this.config.width / this.config.heads))) })),
+        looked: rowsOf(layer.looked),
+        sums: layer.sums ? rowsOf(layer.sums) : empty,
+        neurons: layer.neurons ? rowsOf(layer.neurons) : empty,
+        thought: layer.thought ? rowsOf(layer.thought) : empty,
+      })),
+      logits: Array.from(logits.data.subarray(last * v, (last + 1) * v)),
+      lens,
     };
   }
 

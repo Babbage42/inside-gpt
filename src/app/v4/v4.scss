@@ -186,9 +186,16 @@ body.v4-body { background: #0b1020; }
   .recap .sentence { font-family: var(--serif); font-size: 23px; line-height: 1.6; margin: 0; button { font: inherit; padding: 0 6px; border-radius: 6px; background: rgba(255, 180, 84, .12); border: 0; color: var(--amber); } }
   .finale { text-align: center; padding: 70px 0 30px; p { font-size: 20px; color: var(--mute); margin: 0 0 10px; } h2 { font-family: var(--serif); font-weight: 500; font-size: clamp(38px, 6vw, 68px); margin: 0; color: var(--amber); } }
 
+  // Dix chapitres : sous 1400 px on resserre la barre, sous 1100 px on ne nomme que le chapitre courant.
+  @media (max-width: 1399px) {
+    .topbar { gap: 12px; padding: 10px 18px; nav { gap: 0; } nav button { font-size: 13.5px; gap: 6px; padding: 6px 5px; small { width: 20px; height: 20px; font-size: 11.5px; } } }
+  }
+  @media (max-width: 1100px) {
+    .topbar nav { justify-content: flex-start; } .topbar nav button span { display: none; } .topbar nav button.on span { display: inline; }
+  }
   @media (max-width: 860px) {
     font-size: 16px;
-    .topbar { padding: 8px 16px; gap: 12px; nav { justify-content: flex-start; } nav button span { display: none; } nav button.on span { display: inline; } }
+    .topbar { padding: 8px 16px; }
     main { padding: 0 16px 24px; } .pager { padding: 20px 16px 48px; flex-direction: column-reverse; }
     .hero { padding-top: 40px; }
     .moment, .moment.wide, .moment.play, .prose.two-col, .readout, .findings, .train-bar { grid-template-columns: minmax(0, 1fr); gap: 22px; }
