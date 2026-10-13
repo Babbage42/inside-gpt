@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation, computed, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewEncapsulation, computed, effect, signal, viewChild } from '@angular/core';
 import { ChGame } from './chapters/ch1-game';
 import { ChCount } from './chapters/ch2-count';
 import { ChMap } from './chapters/ch3-map';
@@ -22,7 +22,10 @@ const STORAGE_KEY = 'inside-gpt';
   styleUrls: ['./v4.scss', './v4-deep.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class V4Root {
+export class V4Root implements AfterViewInit, OnDestroy {
+  private readonly bar = viewChild.required<ElementRef<HTMLElement>>('bar');
+  private watcher?: ResizeObserver;
+  private width = 0;
   readonly chapters = CHAPTERS;
   readonly chapter = signal(this.restore());
   readonly next = computed(() => CHAPTERS[this.chapter() + 1]);
@@ -38,6 +41,45 @@ export class V4Root {
     });
     document.body.classList.add('v4-body');
     document.title = 'Inside GPT · Comprendre les LLM, d’une multiplication à GPT';
+    // Quand on change de chapitre, le nom affiché change de largeur : on réajuste la barre.
+    effect(() => {
+      this.chapter();
+      this.asking();
+      setTimeout(() => this.fit());
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.fit();
+    // Réajuster change la hauteur de la barre : on ne réagit qu'à la largeur, et hors du passage de l'observateur.
+    this.watcher = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.width === this.width) return;
+      this.width = entry.contentRect.width;
+      requestAnimationFrame(() => this.fit());
+    });
+    this.watcher.observe(this.bar().nativeElement);
+    document.fonts?.ready.then(() => this.fit());
+  }
+
+  ngOnDestroy(): void {
+    this.watcher?.disconnect();
+  }
+
+  /**
+   * Donne à la barre la présentation la plus généreuse qui tienne dans la largeur disponible :
+   * normale, resserrée, puis réduite aux numéros. On mesure la place réellement occupée par les chapitres,
+   * plutôt que de parier sur une largeur d'écran.
+   */
+  private fit(): void {
+    const bar = this.bar().nativeElement, nav = bar.querySelector('nav')!, items = nav.children;
+    const needed = () => items[items.length - 1].getBoundingClientRect().right - items[0].getBoundingClientRect().left;
+    for (const classes of [[], ['compact'], ['compact', 'numbers']]) {
+      bar.classList.remove('compact', 'numbers');
+      bar.classList.add(...classes);
+      if (needed() <= nav.clientWidth + 0.5) break;
+    }
+    // Sur un écran étroit, la liste défile : on garde le chapitre courant en vue.
+    if (bar.classList.contains('numbers')) nav.querySelector('.on')?.scrollIntoView({ inline: 'center', block: 'nearest' });
   }
 
   /** Ouvre les questions fréquentes ; about limite la liste à celles d'un chapitre. */
