@@ -158,6 +158,65 @@ export class Tape {
     return out;
   }
 
+  /** Le pli : zéro pour une valeur négative, la valeur elle-même sinon (ReLU). */
+  relu(a: Mat): Mat {
+    const out = new Mat(a.rows, a.cols);
+    for (let i = 0; i < out.data.length; i++) out.data[i] = a.data[i] > 0 ? a.data[i] : 0;
+    this.steps.push(() => {
+      for (let i = 0; i < out.grad.length; i++) if (a.data[i] > 0) a.grad[i] += out.grad[i];
+    });
+    return out;
+  }
+
+  /** Remise à l'échelle de chaque ligne : moyenne 0, écart-type 1. */
+  layerNorm(a: Mat): Mat {
+    const out = new Mat(a.rows, a.cols);
+    const n = a.cols, spread = new Float32Array(a.rows);
+    for (let r = 0; r < a.rows; r++) {
+      let mean = 0;
+      for (let j = 0; j < n; j++) mean += a.data[r * n + j];
+      mean /= n;
+      let variance = 0;
+      for (let j = 0; j < n; j++) variance += (a.data[r * n + j] - mean) ** 2;
+      spread[r] = Math.sqrt(variance / n + 1e-5);
+      for (let j = 0; j < n; j++) out.data[r * n + j] = (a.data[r * n + j] - mean) / spread[r];
+    }
+    this.steps.push(() => {
+      for (let r = 0; r < a.rows; r++) {
+        let meanGrad = 0, meanTilt = 0;
+        for (let j = 0; j < n; j++) {
+          meanGrad += out.grad[r * n + j];
+          meanTilt += out.grad[r * n + j] * out.data[r * n + j];
+        }
+        meanGrad /= n;
+        meanTilt /= n;
+        for (let j = 0; j < n; j++)
+          a.grad[r * n + j] += (out.grad[r * n + j] - meanGrad - out.data[r * n + j] * meanTilt) / spread[r];
+      }
+    });
+    return out;
+  }
+
+  /** Colle des matrices côte à côte (les sorties de plusieurs têtes d'attention). */
+  join(parts: readonly Mat[]): Mat {
+    const rows = parts[0].rows, cols = parts.reduce((sum, p) => sum + p.cols, 0);
+    const out = new Mat(rows, cols);
+    let offset = 0;
+    const offsets = parts.map((p) => {
+      const at = offset;
+      for (let r = 0; r < rows; r++) out.data.set(p.data.subarray(r * p.cols, (r + 1) * p.cols), r * cols + at);
+      offset += p.cols;
+      return at;
+    });
+    this.steps.push(() => {
+      parts.forEach((p, k) => {
+        for (let r = 0; r < rows; r++)
+          for (let j = 0; j < p.cols; j++) p.grad[r * p.cols + j] += out.grad[r * cols + offsets[k] + j];
+      });
+    });
+    return out;
+  }
+
   /**
    * Perte −ln P(cible) lue sur une ligne de scores. Amorce aussi le gradient :
    * appeler backward() ensuite suffit.

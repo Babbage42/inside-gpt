@@ -1,35 +1,55 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, WritableSignal, computed, signal, viewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, computed, signal, viewChild } from '@angular/core';
 import { Chapter, FrameLoop, big, num, pct } from '../shared';
-import { DRINKS, LAST, LENGTH, LookupModel, NAMES, VOCAB, fixedPuzzles, isHeldOut, makePuzzle } from '../engine/lookup';
+import { MiniConfig, MiniGpt } from '../engine/mini-gpt';
+import { CONTEXT, WORDS, encode, tokenize } from '../engine/mini-world';
 
 const W = 1600;
 const H = 900;
-const TOTAL = 2000;
-const EVERY = 50;
 const GPT3 = 175e9;
-const UNSEEN = fixedPuzzles('test', 60, 99);
+const INK = '#eef1fb', MUTE = '#9aa5c4', LINE = '#2a3558', AMBER = '#ffb454', CYAN = '#5ad1e6', PINK = '#ff7eb6', NIGHT = '#0d1326';
+const HEAD_COLORS = [CYAN, PINK];
 
 // Géométrie de la fresque, en pixels logiques.
-const ROW = (i: number) => 122 + i * 92;
-const CELL = 6.5;
-const BAND = 24 * CELL;
-const STATION = [400, 760, 1120];
-const TABLE = { x: 196, y: 318, cell: 6, row: 14 };
-const BAR = { x: 1340, y: 74, step: 47, width: 140 };
-const INK = '#eef1fb', MUTE = '#9aa5c4', LINE = '#2a3558', AMBER = '#ffb454', CYAN = '#5ad1e6', PINK = '#ff7eb6';
+const CHIP = { x: 20, width: 116 };
+const TABLE = { x: 182, y: 250, width: 132, row: 6 };
+const FLOW = { first: 356, last: 1196, width: 144 };
+const READ = { x: 1380, bar: 100, slots: 7, step: 64 };
+const MIDDLE = 462;
 
-interface Stage {
-  readonly title: string;
-  readonly text: string;
+interface Report {
+  readonly step: number;
+  readonly loss: number;
+  readonly scores: Readonly<Record<string, number>>;
 }
 
-const STAGES: readonly Stage[] = [
-  { title: 'Les mots', text: 'La fiche entre dans la machine. Chaque mot est remplacé par son numéro : une simple adresse.' },
-  { title: 'La table des boutons', text: 'Chaque numéro désigne une ligne de la table. Ces lignes sont les boutons du chapitre 3, tournés par l’entraînement.' },
-  { title: 'Le flux', text: 'Chaque mot voyage sous forme de bande de 24 nombres, à laquelle s’ajoute sa place dans la phrase. Huit rails parallèles.' },
-  { title: 'Couche 1 · ranger', text: 'Les mots se regardent. Plus un regard est appuyé, plus le débit est épais. Chaque boisson reçoit la marque du prénom qui la précède.' },
-  { title: 'Couche 2 · chercher', text: 'Second tour, sur des bandes enrichies. La question trouve la boisson qui porte la bonne marque et recopie son contenu.' },
-  { title: 'La lecture', text: 'La dernière bande est comparée aux 17 candidats. Les notes deviennent des parts de 100 % : la réponse.' },
+interface Meta {
+  readonly config: MiniConfig;
+  readonly parameters: number;
+  readonly seconds: number;
+  readonly batch: number;
+  readonly report: readonly Report[];
+}
+
+interface Preset {
+  readonly label: string;
+  readonly text: string;
+  readonly why: string;
+}
+
+const PRESETS: readonly Preset[] = [
+  { label: 'Une connaissance', text: 'où vit le zèbre ?', why: 'Elle a lu « le zèbre vit dans la savane », mais jamais une seule question sur le zèbre. Elle doit faire le lien toute seule.' },
+  { label: 'Un pronom', text: 'que font les tigres ?', why: 'Question jamais posée sur le tigre. Il faut répondre « ils », au pluriel, puis conjuguer le bon verbe.' },
+  { label: 'Un accord', text: 'les chouettes', why: 'Elle n’a jamais lu « les chouettes volent ». Regarde le verbe qu’elle propose, et surtout sa forme.' },
+  { label: 'Plusieurs réponses', text: 'qui vit dans la mer ?', why: 'Trois réponses sont justes. Regarde comment elle répartit ses chances, puis monte la température et recommence.' },
+  { label: 'Écriture libre', text: 'les', why: 'Sans question, elle écrit ce qu’elle sait de son monde. Monte la température pour varier, et appuie plusieurs fois.' },
+  { label: 'Une erreur', text: 'que font les baleines ?', why: 'Elle répond « ils nagent » : le verbe est juste, le pronom est faux. Elle n’a jamais lu de question sur la baleine, et n’a pas assez de texte pour relier « baleines » au féminin. Les grands modèles y arrivent grâce à des milliards d’exemples.' },
+  { label: 'Hors de son monde', text: 'où vit le poisson ?', why: 'Pour elle, « poisson » n’est qu’une nourriture. Elle répond quand même, avec aplomb : une hallucination en miniature.' },
+];
+
+const SKILLS = [
+  { key: 'vérité', label: 'Écrire des phrases vraies' },
+  { key: 'question', label: 'Répondre à une question jamais posée' },
+  { key: 'accord', label: 'Accorder une phrase jamais lue' },
 ];
 
 function tone(value: number, scale = 2): string {
@@ -37,12 +57,10 @@ function tone(value: number, scale = 2): string {
   return value >= 0 ? `rgba(255,180,84,${strength})` : `rgba(90,209,230,${strength})`;
 }
 
-/** Point d'une courbe de Bézier horizontale entre (x0, y0) et (x1, y1). */
+/** Point d'une courbe de Bézier dont les tangentes sont horizontales aux deux bouts. */
 function along(x0: number, y0: number, x1: number, y1: number, t: number): [number, number] {
   const bend = (x1 - x0) * 0.5, u = 1 - t;
-  const x = u * u * u * x0 + 3 * u * u * t * (x0 + bend) + 3 * u * t * t * (x1 - bend) + t * t * t * x1;
-  const y = u * u * u * y0 + 3 * u * u * t * y0 + 3 * u * t * t * y1 + t * t * t * y1;
-  return [x, y];
+  return [u * u * u * x0 + 3 * u * u * t * (x0 + bend) + 3 * u * t * t * (x1 - bend) + t * t * t * x1, u * u * u * y0 + 3 * u * u * t * y0 + 3 * u * t * t * y1 + t * t * t * y1];
 }
 
 @Component({
@@ -50,147 +68,207 @@ function along(x0: number, y0: number, x1: number, y1: number, t: number): [numb
   template: `
     <header class="hero">
       <p class="kicker">Chapitre 9 · La grande machine</p>
-      <h1>Tout, <em>d’un seul tenant</em></h1>
-      <p class="lede">Tu as démonté la machine pièce par pièce. La voici remontée, en marche. Rien n’est simulé : ce que tu vois circuler, ce sont les vrais nombres du modèle.</p>
+      <h1>Un petit LLM, <em>d’un seul tenant</em></h1>
+      <p class="lede">Tu as démonté la machine pièce par pièce. La voici remontée, dans une version plus proche d’un vrai modèle de langage : elle écrit mot après mot, et répond à des questions sur son petit monde.</p>
     </header>
 
-    <section class="moment stack">
-      <div class="fresco">
-        <canvas #fresco [attr.aria-label]="'La machine complète : ' + answer().label + ' à ' + pct(answer().value)"></canvas>
-      </div>
-
-      <div class="console">
-        <div class="panel wide">
-          <span class="tiny">Temps d’entraînement · pas {{ trainedSteps() }} / {{ total }}</span>
-          <div class="time">
-            <button type="button" class="primary" [disabled]="trainer.running()" (click)="ignite()">{{ trainer.running() ? 'Entraînement…' : trained() ? 'Rejouer l’entraînement' : 'Allumer la machine' }}</button>
-            <input type="range" min="0" [max]="snapshots().length - 1" [value]="index()" [disabled]="!trained() || trainer.running()" (input)="index.set(+$any($event.target).value)" aria-label="Instant de l’entraînement" />
+    @if (failed()) {
+      <section class="moment solo"><div class="takeaway"><p>Le fichier du modèle est introuvable. Lance <code>npm run train:mini</code> pour l’entraîner (quelques minutes), puis recharge la page.</p></div></section>
+    } @else if (!meta()) {
+      <section class="moment solo"><p class="hint">Chargement du modèle…</p></section>
+    } @else {
+      <section class="moment stack">
+        <div class="prose two-col">
+          <div>
+            <p>Elle a lu des milliers de petits textes sur douze animaux : où ils vivent, ce qu’ils mangent, comment ils se déplacent. Comme toujours, on ne lui a demandé qu’une chose : <strong>deviner le mot suivant</strong>.</p>
           </div>
-          <svg class="curves short" viewBox="0 0 300 60" preserveAspectRatio="none">
-            <polyline class="unseen" [attr.points]="curve()" />
-            <line class="cursor" [attr.x1]="cursor()" y1="0" [attr.x2]="cursor()" y2="60" />
-          </svg>
-          <p class="hint">{{ trained() ? 'Glisse le curseur : toute la machine remonte ou descend le temps. Courbe : réussite sur des couples jamais vus (' + pct(score()) + ' à cet instant).' : 'Pour l’instant, ses réglages sont tirés au hasard : les regards partent dans tous les sens.' }}</p>
-        </div>
-
-        <div class="panel">
-          <span class="tiny">La fiche</span>
-          <div class="builder">
-            @for (name of names(); track $index) {
-              <span class="pair">
-                <button type="button" class="name" (click)="cycle(names, $index, namesList.length)">{{ namesList[name] }}</button>
-                <button type="button" class="drink" (click)="cycle(drinks, $index, drinksList.length)">{{ drinksList[drinks()[$index]] }}</button>
-                <button type="button" class="ask" [class.on]="asked() === $index" (click)="asked.set($index)">?</button>
-                @if (held(name, drinks()[$index])) { <small>jamais vus ensemble</small> }
-              </span>
-            }
+          <div>
+            <p>Elle contient tout ce qu’un vrai LLM ajoute : <strong>{{ meta()!.config.layers }} couches</strong>, <strong>{{ meta()!.config.heads }} regards par couche</strong>, et <strong>{{ meta()!.config.hidden }} neurones</strong> après chaque regard. Soit {{ big(meta()!.parameters) }} réglages.</p>
           </div>
-        </div>
-
-        <div class="panel">
-          <span class="tiny">Les couches</span>
-          <div class="controls">
-            <button type="button" [class.primary]="!off().includes(0)" (click)="toggle(0)">Couche 1 {{ off().includes(0) ? 'débranchée' : 'active' }}</button>
-            <button type="button" [class.primary]="!off().includes(1)" (click)="toggle(1)">Couche 2 {{ off().includes(1) ? 'débranchée' : 'active' }}</button>
-          </div>
-          <label class="slider">Température : <strong>{{ num(temperature(), 1) }}</strong>
-            <input type="range" min="0.2" max="3" step="0.1" [value]="temperature()" (input)="temperature.set(+$any($event.target).value)" />
-          </label>
         </div>
 
         <div class="panel wide">
-          <span class="tiny">Suivre le trajet</span>
-          <div class="controls">
-            <button type="button" [class.primary]="stage() < 0" (click)="stage.set(-1)">Tout en marche</button>
-            @for (s of stages; track s.title) { <button type="button" [class.primary]="stage() === $index" (click)="stage.set($index)">{{ $index + 1 }}</button> }
-            <button type="button" (click)="paused.set(!paused())">{{ paused() ? 'Reprendre' : 'Pause' }}</button>
+          <span class="tiny">Ton texte · elle connaît {{ vocabulary.length }} mots</span>
+          <div class="prompt-row">
+            <input type="text" [value]="draft()" (input)="type($any($event.target).value)" (keydown.enter)="writeSentence()" aria-label="Texte de départ" spellcheck="false" />
+            <button type="button" class="primary" [disabled]="busy() || full()" (click)="writeSentence()">Écrire la suite</button>
+            <button type="button" [disabled]="busy() || full()" (click)="writeOne()">Un seul mot</button>
+            <button type="button" [disabled]="!written().length" (click)="erase()">Effacer la suite</button>
           </div>
-          <p class="phase">@if (stage() >= 0) { <strong>{{ stages[stage()].title }}.</strong> {{ stages[stage()].text }} } @else { La machine répond <strong>« {{ answer().label }} »</strong> avec {{ pct(answer().value) }} de confiance. {{ answer().right ? 'C’est la bonne réponse.' : 'La bonne réponse était « ' + target() + ' ».' }} }</p>
+          <p class="context">
+            @for (word of prompt(); track $index) { <span>{{ word }}</span> }
+            @for (word of written(); track $index) { <span class="new">{{ word }}</span> }
+            @if (!prompt().length) { <em>Écris un début de phrase, ou choisis un exemple.</em> }
+          </p>
+          @if (unknown().length) { <p class="hint warn">Mots qu’elle ne connaît pas, ignorés : {{ unknown().join(', ') }}</p> }
+          <div class="chips presets">
+            @for (preset of presets; track preset.label) { <button type="button" [class.on]="chosen() === $index" style="--tone: #ffb454" (click)="choose($index)">{{ preset.label }}</button> }
+          </div>
+          @if (chosen() >= 0) { <p class="hint">{{ presets[chosen()].why }}</p> }
+          <details class="vocab">
+            <summary>Voir son vocabulaire</summary>
+            <p class="context">@for (word of vocabulary; track word) { <button type="button" (click)="append(word)">{{ word }}</button> }</p>
+          </details>
         </div>
-      </div>
-      @if (trained() && step() === 0) { <button type="button" class="primary center" (click)="recede()">Reculer pour voir l’échelle</button> }
-    </section>
 
-    @if (step() >= 1) {
-      <section class="moment stack" id="machine-scale">
-        <div class="fresco zoom">
-          <canvas #zoom></canvas>
-          <div class="count">
-            <strong>{{ big(copies()) }}</strong>
-            <span>{{ copies() > 1 ? 'machines comme celle-ci' : 'machine' }} · {{ big(arrived() ? gpt3 : copies() * parameters) }} réglages</span>
-            @if (arrived()) { <em>C’est la taille de GPT-3. Sorti en 2020.</em> }
+        <div class="fresco"><canvas #fresco [attr.aria-label]="'La machine complète. Suite la plus probable : ' + favourite().word"></canvas></div>
+
+        <div class="console">
+          <div class="panel">
+            <span class="tiny">Temps d’entraînement · pas {{ report().step }} / {{ lastStep() }}</span>
+            <div class="time">
+              <button type="button" [disabled]="replay.running()" (click)="replayTraining()">{{ replay.running() ? 'Lecture…' : 'Rejouer' }}</button>
+              <input type="range" min="0" [max]="meta()!.report.length - 1" [value]="index()" (input)="index.set(+$any($event.target).value)" aria-label="Instant de l’entraînement" />
+            </div>
+            <ul class="skills-list">
+              @for (skill of skills; track skill.key) {
+                <li><span>{{ skill.label }}</span><span class="skill-track"><i [style.width.%]="(report().scores[skill.key] || 0) * 100"></i></span><strong>{{ pct(report().scores[skill.key] || 0) }}</strong></li>
+              }
+            </ul>
+            <p class="hint">Les deux dernières lignes sont mesurées uniquement sur des cas absents de l’entraînement. Glisse le curseur : toute la machine remonte le temps.</p>
+          </div>
+
+          <div class="panel">
+            <span class="tiny">Les couches</span>
+            <div class="controls">
+              @for (layer of layers(); track layer) { <button type="button" [class.primary]="!off().includes(layer)" (click)="toggle(layer)">Couche {{ layer + 1 }} {{ off().includes(layer) ? 'débranchée' : 'active' }}</button> }
+            </div>
+            <label class="slider">Température : <strong>{{ temperature() ? num(temperature(), 1) : '0 · toujours le favori' }}</strong>
+              <input type="range" min="0" max="2" step="0.1" [value]="temperature()" (input)="temperature.set(+$any($event.target).value)" />
+            </label>
+            <span class="tiny">Suivre le trajet</span>
+            <div class="controls">
+              <button type="button" [class.primary]="stage() < 0" (click)="stage.set(-1)">Tout</button>
+              @for (s of stages(); track s.title) { <button type="button" [class.primary]="stage() === $index" (click)="stage.set($index)">{{ $index + 1 }}</button> }
+              <button type="button" (click)="paused.set(!paused())">{{ paused() ? 'Reprendre' : 'Pause' }}</button>
+            </div>
+            <p class="phase">@if (stage() >= 0) { <strong>{{ stages()[stage()].title }}.</strong> {{ stages()[stage()].text }} } @else { Suite la plus probable : <strong>« {{ favourite().word }} »</strong>, à {{ pct(favourite().value) }}. }</p>
           </div>
         </div>
-        @if (arrived()) {
-          <div class="finale">
-            <p>Un jeu de devinettes. Des boutons. Une pente. Des neurones. Des regards.</p>
-            <h2>Rien d’autre. Et pourtant.</h2>
-            <button type="button" (click)="recede()">Revoir le recul</button>
-          </div>
-        }
+        <p class="aside wide">Cette machine a été entraînée à l’avance : {{ big(lastStep()) }} pas de {{ meta()!.batch }} textes, soit {{ duration() }} sur un ordinateur portable, avec le moteur de ce cours. Les instantanés de cet entraînement sont rejoués ici ; tout ce qui circule à l’écran est calculé en direct. Elle ne sait que ce qu’elle a retenu de ses lectures : lire une scène nouvelle, comme le modèle du chapitre 6, demande un entraînement qu’elle n’a pas reçu.</p>
+        @if (step() === 0) { <button type="button" class="primary center" (click)="recede()">Reculer pour voir l’échelle</button> }
       </section>
+
+      @if (step() >= 1) {
+        <section class="moment stack" id="machine-scale">
+          <div class="fresco zoom">
+            <canvas #zoom></canvas>
+            <div class="count">
+              <strong>{{ big(copies()) }}</strong>
+              <span>{{ copies() > 1 ? 'machines comme celle-ci' : 'machine' }} · {{ big(arrived() ? gpt3 : copies() * meta()!.parameters) }} réglages</span>
+              @if (arrived()) { <em>C’est la taille de GPT-3. Sorti en 2020.</em> }
+            </div>
+          </div>
+          @if (arrived()) {
+            <div class="finale">
+              <p>Un jeu de devinettes. Des boutons. Une pente. Des neurones. Des regards.</p>
+              <h2>Rien d’autre. Et pourtant.</h2>
+              <button type="button" (click)="recede()">Revoir le recul</button>
+            </div>
+          }
+        </section>
+      }
     }
   `,
 })
 export class ChMachine extends Chapter implements AfterViewInit, OnDestroy {
-  readonly total = TOTAL;
-  readonly stages = STAGES;
-  readonly namesList = NAMES;
-  readonly drinksList = DRINKS;
+  readonly presets = PRESETS;
+  readonly skills = SKILLS;
+  readonly vocabulary = WORDS;
   readonly num = num;
   readonly pct = pct;
   readonly big = big;
   readonly gpt3 = GPT3;
 
-  private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('fresco');
+  private readonly canvas = viewChild<ElementRef<HTMLCanvasElement>>('fresco');
   private readonly zoomCanvas = viewChild<ElementRef<HTMLCanvasElement>>('zoom');
   private readonly painter = new FrameLoop();
   private readonly zoomer = new FrameLoop();
-  readonly trainer = new FrameLoop();
+  readonly replay = new FrameLoop();
 
-  /** Le modèle qu'on entraîne, et celui qu'on regarde : le second rejoue les instantanés du premier. */
-  private learner = new LookupModel(7, 24, 2, 0.004, 0.2);
-  private readonly viewer = new LookupModel(7, 24, 2, 0.004, 0.2);
-  readonly parameters = this.viewer.parameterCount;
-  readonly snapshots = signal<readonly Float32Array[][]>([this.learner.snapshot()]);
-  readonly scores = signal<readonly number[]>([this.learner.accuracy(UNSEEN)]);
+  readonly meta = signal<Meta | null>(null);
+  readonly failed = signal(false);
+  private weights = new Float32Array(0);
+  private viewer: MiniGpt | null = null;
   readonly index = signal(0);
-  readonly trained = signal(false);
-  readonly trainedSteps = computed(() => this.index() * EVERY);
-  readonly score = computed(() => this.scores()[this.index()] ?? 0);
+  readonly report = computed(() => this.meta()!.report[this.index()]);
+  readonly lastStep = computed(() => this.meta()!.report[this.meta()!.report.length - 1].step);
+  readonly duration = computed(() => {
+    const seconds = this.meta()!.seconds;
+    return seconds < 100 ? `environ ${Math.round(seconds / 10) * 10} secondes` : `environ ${Math.round(seconds / 60)} minutes`;
+  });
+  readonly layers = computed(() => Array.from({ length: this.meta()!.config.layers }, (_, l) => l));
 
-  readonly names = signal<readonly number[]>([0, 1, 2]);
-  readonly drinks = signal<readonly number[]>([1, 3, 0]);
-  readonly asked = signal(1);
+  readonly draft = signal(PRESETS[0].text);
+  readonly prompt = signal<readonly string[]>(tokenize(PRESETS[0].text).words);
+  readonly unknown = signal<readonly string[]>([]);
+  readonly written = signal<readonly string[]>([]);
+  readonly chosen = signal(0);
+  readonly busy = signal(false);
+  readonly words = computed(() => [...this.prompt(), ...this.written()]);
+  readonly full = computed(() => this.words().length >= CONTEXT || !this.words().length);
+
   readonly off = signal<readonly number[]>([]);
-  readonly temperature = signal(1);
+  readonly temperature = signal(0);
   readonly stage = signal(-1);
   readonly paused = signal(false);
-  readonly puzzle = computed(() => makePuzzle(this.names(), this.drinks(), this.asked()));
-  readonly target = computed(() => VOCAB[this.puzzle().target]);
 
+  readonly stages = computed(() => {
+    const config = this.meta()!.config;
+    return [
+      { title: 'Les mots', text: `Ton texte est découpé en mots. Chacun est remplacé par son numéro dans le vocabulaire de ${WORDS.length} mots.` },
+      { title: 'La table', text: `Chaque numéro désigne une ligne de la table : ${config.width} boutons par mot, tournés par l’entraînement.` },
+      { title: 'Le flux', text: `Chaque mot voyage sous forme de bande de ${config.width} nombres, à laquelle s’ajoute sa place dans le texte.` },
+      ...this.layers().map((l) => ({ title: `Couche ${l + 1}`, text: `Deux regards en parallèle, bleu et rose, vont chercher de l’information dans les mots précédents. Puis ${config.hidden} neurones retravaillent chaque bande : en bas, ceux qui s’allument pour le dernier mot.` })),
+      { title: 'La suite', text: `La dernière bande est comparée aux ${WORDS.length} mots possibles, et les notes deviennent des parts de 100 %. Un mot est choisi, rejoint le texte, et toute la machine repart.` },
+    ];
+  });
+
+  /** Tout ce que la machine calcule pour le texte courant, à l'instant d'entraînement choisi. */
   private readonly view = computed(() => {
-    this.viewer.load(this.snapshots()[this.index()]);
-    const inspection = this.viewer.inspect(this.puzzle(), this.off());
-    const scaled = inspection.logits.map((v) => v / this.temperature());
-    const peak = Math.max(...scaled), exps = scaled.map((v) => Math.exp(v - peak)), sum = exps.reduce((a, b) => a + b, 0);
-    return { inspection, probs: exps.map((v) => v / sum), table: this.viewer.embeddingTable() };
+    const meta = this.meta(), ids = encode(this.words());
+    if (!meta || !this.viewer || !ids.length) return null;
+    const size = meta.parameters;
+    this.viewer.load(this.weights.subarray(this.index() * size, (this.index() + 1) * size));
+    const trace = this.viewer.trace(ids, this.off()), heat = this.temperature() || 1;
+    const peak = Math.max(...trace.logits), exps = trace.logits.map((v) => Math.exp((v - peak) / heat)), sum = exps.reduce((a, b) => a + b, 0);
+    const ranked = exps.map((v, id) => ({ id, value: v / sum })).sort((a, b) => b.value - a.value);
+    return { ids, trace, ranked, table: this.viewer.embeddingTable() };
   });
 
-  readonly answer = computed(() => {
-    const probs = this.view().probs, best = probs.indexOf(Math.max(...probs));
-    return { label: VOCAB[best], value: probs[best], right: best === this.puzzle().target };
+  readonly favourite = computed(() => {
+    const best = this.view()?.ranked[0];
+    return { word: best ? WORDS[best.id] : '…', value: best?.value ?? 0 };
   });
-
-  readonly curve = computed(() => this.scores().map((s, i) => `${(i / (TOTAL / EVERY)) * 300},${56 - s * 52}`).join(' '));
-  readonly cursor = computed(() => (this.index() / (TOTAL / EVERY)) * 300);
 
   readonly copies = signal(1);
   readonly arrived = signal(false);
   private clock = 0;
+  private timer = 0;
+  /** Le dernier mot écrit vole de la sortie vers le texte : instant de départ et rang parmi les candidats. */
+  private flight = { since: -10, slot: 0 };
+
+  constructor() {
+    super();
+    Promise.all([fetch('models/mini-llm.json').then((r) => r.json() as Promise<Meta>), fetch('models/mini-llm.bin').then((r) => r.arrayBuffer())])
+      .then(([meta, buffer]) => {
+        this.weights = new Float32Array(buffer);
+        this.viewer = new MiniGpt(meta.config);
+        this.index.set(meta.report.length - 1);
+        this.meta.set(meta);
+        setTimeout(() => this.startPainting(), 60);
+      })
+      .catch(() => this.failed.set(true));
+  }
 
   ngAfterViewInit(): void {
-    const canvas = this.canvas().nativeElement, ratio = Math.min(window.devicePixelRatio || 1, 2);
+    this.startPainting();
+  }
+
+  private startPainting(): void {
+    const canvas = this.canvas()?.nativeElement;
+    if (!canvas || this.painter.running()) return;
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = W * ratio;
     canvas.height = H * ratio;
     const context = canvas.getContext('2d')!;
@@ -206,55 +284,85 @@ export class ChMachine extends Chapter implements AfterViewInit, OnDestroy {
     });
   }
 
-  held(name: number, drink: number): boolean {
-    return isHeldOut(name, drink);
+  type(text: string): void {
+    const { words, unknown } = tokenize(text);
+    clearTimeout(this.timer);
+    this.busy.set(false);
+    this.draft.set(text);
+    this.prompt.set(words.slice(0, CONTEXT - 1));
+    this.unknown.set(unknown);
+    this.written.set([]);
+    this.chosen.set(-1);
+  }
+
+  choose(index: number): void {
+    this.type(PRESETS[index].text);
+    this.chosen.set(index);
+  }
+
+  append(word: string): void {
+    this.type((this.draft() + ' ' + word).trim());
+  }
+
+  erase(): void {
+    clearTimeout(this.timer);
+    this.busy.set(false);
+    this.written.set([]);
   }
 
   toggle(layer: number): void {
     this.off.update((list) => (list.includes(layer) ? list.filter((l) => l !== layer) : [...list, layer]));
   }
 
-  cycle(target: WritableSignal<readonly number[]>, slot: number, size: number): void {
-    target.update((list) => {
-      let value = list[slot];
-      do value = (value + 1) % size;
-      while (list.some((other, i) => i !== slot && other === value));
-      return list.map((v, i) => (i === slot ? value : v));
-    });
+  /** Choisit le mot suivant : le favori à température 0, sinon un tirage selon les probabilités. */
+  writeOne(): string | null {
+    const view = this.view();
+    if (!view || this.full()) return null;
+    let slot = 0;
+    if (this.temperature() > 0) {
+      let draw = Math.random();
+      while (slot < view.ranked.length - 1 && draw > view.ranked[slot].value) draw -= view.ranked[slot++].value;
+    }
+    const word = WORDS[view.ranked[slot].id];
+    this.flight = { since: this.clock, slot: Math.min(slot, READ.slots - 1) };
+    this.written.update((list) => [...list, word]);
+    return word;
   }
 
-  /** Entraîne pour de bon, en gardant un instantané tous les 50 pas ; la fresque suit en direct. */
-  ignite(): void {
-    this.learner = new LookupModel(7, 24, 2, 0.004, 0.2);
-    this.snapshots.set([this.learner.snapshot()]);
-    this.scores.set([this.learner.accuracy(UNSEEN)]);
+  /** Écrit mot après mot jusqu'au point : c'est la boucle du chapitre 2, sur la vraie machine. */
+  writeSentence(): void {
+    if (this.busy() || this.full()) return;
+    this.busy.set(true);
+    const next = () => {
+      const word = this.writeOne();
+      if (word && word !== '.' && !this.full() && this.written().length < 14) this.timer = window.setTimeout(next, 1100);
+      else this.busy.set(false);
+    };
+    next();
+  }
+
+  replayTraining(): void {
+    const last = this.meta()!.report.length - 1;
+    let frame = 0;
     this.index.set(0);
-    this.trainer.start(() => {
-      const start = performance.now();
-      while (performance.now() - start < 7 && this.learner.steps < TOTAL) {
-        this.learner.trainStep(16);
-        if (this.learner.steps % EVERY === 0) {
-          this.snapshots.update((list) => [...list, this.learner.snapshot()]);
-          this.scores.update((list) => [...list, this.learner.accuracy(UNSEEN)]);
-          this.index.set(this.snapshots().length - 1);
-        }
-      }
-      if (this.learner.steps < TOTAL) return true;
-      this.trained.set(true);
-      return false;
+    this.replay.start(() => {
+      if (++frame % 28 === 0) this.index.update((i) => i + 1);
+      return this.index() < last;
     });
   }
 
-  /** Recule : la machine devient une vignette, puis une nappe de 39 millions de vignettes. */
+  /** Recule : la machine devient une vignette, puis une nappe de millions de vignettes. */
   recede(): void {
     this.reveal(1, 'machine-scale');
     this.arrived.set(false);
     this.copies.set(1);
+    const source = this.canvas()?.nativeElement;
+    if (!source) return;
     const thumb = document.createElement('canvas');
     thumb.width = 320;
     thumb.height = 180;
-    thumb.getContext('2d')!.drawImage(this.canvas().nativeElement, 0, 0, 320, 180);
-    const most = GPT3 / this.parameters, began = performance.now() + 500;
+    thumb.getContext('2d')!.drawImage(source, 0, 0, 320, 180);
+    const most = GPT3 / this.meta()!.parameters, began = performance.now() + 500;
     setTimeout(() => {
       const canvas = this.zoomCanvas()?.nativeElement;
       if (!canvas) return;
@@ -264,9 +372,9 @@ export class ChMachine extends Chapter implements AfterViewInit, OnDestroy {
       this.zoomer.stop();
       this.zoomer.start(() => {
         const t = Math.min(1, Math.max(0, (performance.now() - began) / 9000));
-        const eased = t * t * (3 - 2 * t), count = Math.exp(eased * Math.log(most)), perSide = Math.sqrt(count);
-        pattern.setTransform(new DOMMatrix().scale(W / perSide / 320));
-        context.fillStyle = '#0d1326';
+        const eased = t * t * (3 - 2 * t), count = Math.exp(eased * Math.log(most));
+        pattern.setTransform(new DOMMatrix().scale(W / Math.sqrt(count) / 320));
+        context.fillStyle = NIGHT;
         context.fillRect(0, 0, W, H);
         context.fillStyle = pattern;
         context.fillRect(0, 0, W, H);
@@ -279,132 +387,163 @@ export class ChMachine extends Chapter implements AfterViewInit, OnDestroy {
   }
 
   private paint(c: CanvasRenderingContext2D, time: number): void {
-    const { inspection, probs, table } = this.view(), ids = this.puzzle().ids, stage = this.stage();
+    c.globalAlpha = 1;
+    c.fillStyle = NIGHT;
+    c.fillRect(0, 0, W, H);
+    const view = this.view(), meta = this.meta();
+    if (!view || !meta) return;
+    const { ids, trace, ranked, table } = view, { width, layers, hidden } = meta.config;
+    const count = ids.length, last = count - 1, stage = this.stage();
+    const gap = Math.min(64, 720 / count), top = MIDDLE - (gap * last) / 2, row = (i: number) => top + i * gap;
+    const thick = Math.min(26, gap - 6), cell = FLOW.width / width;
+    const station = (s: number) => FLOW.first + ((FLOW.last - FLOW.first) / layers) * s;
     const shown = (column: number) => (stage < 0 || stage >= column ? 1 : 0.1);
     const flow = (phase: number) => (time * 0.32 + phase) % 1;
-    c.clearRect(0, 0, W, H);
-    c.fillStyle = '#0d1326';
-    c.fillRect(0, 0, W, H);
+    const font = (size: number, weight = '') => `${weight} ${size}px Inter, system-ui, sans-serif`;
     c.textBaseline = 'middle';
 
     const header = (text: string, x: number, column: number, color = MUTE) => {
       c.globalAlpha = shown(column);
       c.fillStyle = color;
-      c.font = '600 18px Inter, system-ui, sans-serif';
+      c.font = font(18, '600');
       c.textAlign = 'left';
       c.fillText(text, x, 44);
     };
-    header('1 · LES MOTS', 30, 0);
+    header('1 · LES MOTS', CHIP.x, 0);
     header('2 · LA TABLE', TABLE.x, 1);
-    header('3 · LE FLUX', STATION[0], 2);
-    header('COUCHE 1 · RANGER', STATION[0] + BAND + 26, 3, CYAN);
-    header('COUCHE 2 · CHERCHER', STATION[1] + BAND + 26, 4, AMBER);
-    header('4 · LA LECTURE', BAR.x, 5);
+    header('3 · LE FLUX', station(0), 2);
+    for (let l = 0; l < layers; l++) header(`COUCHE ${l + 1}`, station(l) + FLOW.width + 18, 3 + l, INK);
+    header('4 · LA SUITE', READ.x, 3 + layers);
 
-    // 1 · Les mots et leur numéro.
+    // 1 · Les mots. Ceux que la machine a écrits elle-même sont en orange.
+    const mine = count - this.written().length;
     c.globalAlpha = shown(0);
+    const chipHeight = Math.min(42, gap - 4);
     ids.forEach((id, i) => {
-      const y = ROW(i), isName = id < NAMES.length, isDrink = !isName && id < NAMES.length + DRINKS.length;
+      const y = row(i);
       c.fillStyle = '#1b2442';
-      c.strokeStyle = i === LAST ? AMBER : LINE;
-      c.lineWidth = i === LAST ? 2.5 : 1.5;
+      c.strokeStyle = i === last ? AMBER : LINE;
+      c.lineWidth = i === last ? 2.5 : 1.5;
       c.beginPath();
-      c.roundRect(30, y - 22, 108, 44, 10);
+      c.roundRect(CHIP.x, y - chipHeight / 2, CHIP.width, chipHeight, 9);
       c.fill();
       c.stroke();
-      c.fillStyle = isName ? PINK : isDrink ? AMBER : INK;
-      c.font = '500 22px Inter, system-ui, sans-serif';
+      c.fillStyle = i >= mine ? AMBER : INK;
+      c.font = font(Math.min(21, chipHeight * 0.56), '500');
       c.textAlign = 'center';
-      c.fillText(VOCAB[id], 84, y);
-      c.fillStyle = MUTE;
-      c.font = '15px Inter, system-ui, sans-serif';
-      c.fillText('n° ' + id, 164, y - 14);
+      c.fillText(WORDS[id], CHIP.x + CHIP.width / 2, y + 1);
+      if (gap > 30) {
+        c.fillStyle = MUTE;
+        c.font = font(13);
+        c.textAlign = 'left';
+        c.fillText('n° ' + id, CHIP.x + CHIP.width + 6, y - chipHeight / 2 + 7);
+      }
     });
 
-    // 2 · La table des boutons : une ligne par token du vocabulaire.
+    // 2 · La table : une ligne de boutons par mot du vocabulaire.
+    const tableCell = TABLE.width / width, tableRight = TABLE.x + TABLE.width;
     c.globalAlpha = shown(1);
-    table.forEach((row, r) => {
+    table.forEach((line, r) => {
       const used = ids.includes(r);
-      row.forEach((v, k) => {
-        c.fillStyle = tone(v, used ? 1.4 : 3.5);
-        c.fillRect(TABLE.x + k * TABLE.cell, TABLE.y + r * TABLE.row, TABLE.cell - 1, TABLE.row - 2);
+      line.forEach((v, k) => {
+        c.fillStyle = tone(v, used ? 0.5 : 1.6);
+        c.fillRect(TABLE.x + k * tableCell, TABLE.y + r * TABLE.row, tableCell - 0.4, TABLE.row - 1.5);
       });
     });
     ids.forEach((id, i) => {
-      const y = ROW(i), rowY = TABLE.y + id * TABLE.row + TABLE.row / 2 - 1, right = TABLE.x + 24 * TABLE.cell;
-      this.wire(c, 176, y, TABLE.x - 4, rowY, 1, MUTE, 0.5 * shown(1), flow(i * 0.13));
-      this.wire(c, right + 2, rowY, STATION[0] - 6, y, 1, MUTE, 0.5 * shown(2), flow(i * 0.13 + 0.4));
+      const lineY = TABLE.y + id * TABLE.row + TABLE.row / 2 - 1;
+      this.wire(c, CHIP.x + CHIP.width + 36, row(i), TABLE.x - 4, lineY, 1, MUTE, 0.45 * shown(1), flow(i * 0.13));
+      this.wire(c, tableRight + 3, lineY, station(0) - 6, row(i), 1, MUTE, 0.45 * shown(2), flow(i * 0.13 + 0.4));
     });
 
-    // 3 · Le flux : trois états successifs de chaque bande.
-    inspection.stream.forEach((state, s) => {
+    // 3 · Le flux : l'état de chaque mot à l'entrée, puis après chaque couche.
+    trace.stream.forEach((state, s) => {
       c.globalAlpha = shown(2 + s);
-      state.forEach((row, i) => this.band(c, STATION[s], ROW(i), row, s === 2 && i === LAST));
-    });
-    c.globalAlpha = shown(2);
-    c.fillStyle = MUTE;
-    c.font = '16px Inter, system-ui, sans-serif';
-    c.textAlign = 'left';
-    c.fillText('boutons du mot + boutons de sa place', STATION[0], ROW(LENGTH - 1) + 44);
-
-    // Couches 1 et 2 : les regards, et le rail qui prolonge chaque bande.
-    inspection.layers.forEach((layer, l) => {
-      const from = STATION[l] + BAND + 6, to = STATION[l + 1] - 6, color = l ? AMBER : CYAN, active = !this.off().includes(l);
-      for (let i = 0; i < LENGTH; i++) {
-        this.wire(c, from, ROW(i), to, ROW(i), 1, LINE, shown(3 + l), -1);
-        if (!active) continue;
-        // En couche 2, seul le regard de la question mène à la réponse : les autres sont estompés.
-        const matters = l === 0 || i === LAST ? 1 : 0.3;
-        for (let j = 0; j < i; j++) {
-          const weight = layer.weight[i][j];
-          if (weight < 0.05) continue;
-          this.wire(c, from, ROW(j), to, ROW(i), 1 + weight * 7, color, weight * matters * shown(3 + l), flow(i * 0.21 + j * 0.37), Math.ceil(weight * 4));
+      state.forEach((values, i) => {
+        const x = station(s), y = row(i);
+        c.fillStyle = '#131a30';
+        c.fillRect(x - 3, y - thick / 2 - 3, FLOW.width + 6, thick + 6);
+        values.forEach((v, k) => {
+          c.fillStyle = tone(v, 2.5);
+          c.fillRect(x + k * cell, y - thick / 2, cell - 0.5, thick);
+        });
+        if (s === layers && i === last) {
+          c.strokeStyle = AMBER;
+          c.lineWidth = 2;
+          c.strokeRect(x - 3, y - thick / 2 - 3, FLOW.width + 6, thick + 6);
         }
-      }
-      if (!active) {
-        c.globalAlpha = shown(3 + l);
-        c.fillStyle = '#ff8a8a';
-        c.font = '600 19px Inter, system-ui, sans-serif';
-        c.textAlign = 'center';
-        c.fillText('débranchée', (from + to) / 2, ROW(0) - 44);
-      }
+      });
     });
 
-    // 4 · La lecture : de la dernière bande aux probabilités.
-    const best = probs.indexOf(Math.max(...probs));
-    probs.forEach((p, j) => {
-      const y = BAR.y + j * BAR.step, right = j === this.puzzle().target;
-      if (p > 0.03) this.wire(c, STATION[2] + BAND + 6, ROW(LAST), BAR.x - 8, y, 1 + p * 7, AMBER, p * shown(5), flow(j * 0.17), Math.ceil(p * 4));
-      c.globalAlpha = shown(5);
-      c.fillStyle = j === best ? INK : MUTE;
-      c.font = (j === best ? '600 ' : '') + '18px Inter, system-ui, sans-serif';
+    // Les couches : regards de chaque tête, puis neurones du dernier mot.
+    trace.layers.forEach((layer, l) => {
+      const from = station(l) + FLOW.width + 6, to = station(l + 1) - 6, active = !this.off().includes(l), visible = shown(3 + l);
+      for (let i = 0; i < count; i++) this.wire(c, from, row(i), to, row(i), 1, LINE, visible, -1);
+      if (active)
+        layer.attention.forEach((head, h) => {
+          const color = HEAD_COLORS[h % HEAD_COLORS.length];
+          for (let i = 1; i < count; i++)
+            for (let j = 0; j < i; j++) {
+              const weight = head[i][j], final = i === last;
+              if (weight < (final ? 0.05 : 0.14)) continue;
+              this.wire(c, from, row(j), to, row(i), 1 + weight * (final ? 6 : 3), color, weight * (final ? 1 : 0.32) * visible, final || weight > 0.6 ? flow(i * 0.21 + j * 0.37 + h * 0.5) : -1, final ? Math.ceil(weight * 3) : 1);
+            }
+        });
+      c.globalAlpha = visible;
       c.textAlign = 'left';
-      c.fillText(VOCAB[j], BAR.x, y);
-      c.fillStyle = '#1b2442';
-      c.fillRect(BAR.x + 70, y - 9, BAR.width, 18);
-      c.fillStyle = right ? AMBER : CYAN;
-      c.fillRect(BAR.x + 70, y - 9, BAR.width * p, 18);
-      if (p >= 0.05) {
-        c.fillStyle = INK;
-        c.font = '16px Inter, system-ui, sans-serif';
-        c.fillText(pct(p), BAR.x + 76 + BAR.width * p, y);
+      if (!active) {
+        c.fillStyle = '#ff8a8a';
+        c.font = font(17, '600');
+        c.fillText('débranchée', from + 12, 74);
+        return;
       }
+      const neurons = layer.neurons[last], lit = neurons.filter((v) => v > 0).length, peak = Math.max(...neurons, 1e-6), step = (to - from) / hidden;
+      c.fillStyle = MUTE;
+      c.font = font(16);
+      c.fillText(`${lit} neurones actifs sur ${hidden}`, from, 848);
+      neurons.forEach((v, k) => {
+        c.fillStyle = v > 0 ? `rgba(255,255,255,${0.25 + 0.75 * (v / peak)})` : '#1b2442';
+        c.fillRect(from + k * step, 862, Math.max(1, step - 0.3), 16);
+      });
     });
-    c.globalAlpha = 1;
-  }
 
-  private band(c: CanvasRenderingContext2D, x: number, y: number, values: readonly number[], framed: boolean): void {
-    c.fillStyle = '#131a30';
-    c.fillRect(x - 3, y - 16, BAND + 5, 32);
-    values.forEach((v, k) => {
-      c.fillStyle = tone(v);
-      c.fillRect(x + k * CELL, y - 13, CELL - 1, 26);
+    // 4 · La suite : les candidats les mieux notés pour le mot suivant.
+    const outX = station(layers) + FLOW.width + 6, slotY = (k: number) => MIDDLE + (k - (READ.slots - 1) / 2) * READ.step;
+    ranked.slice(0, READ.slots).forEach(({ id, value }, k) => {
+      const y = slotY(k);
+      if (value > 0.02) this.wire(c, outX, row(last), READ.x - 10, y, 1 + value * 7, AMBER, value * shown(3 + layers), flow(k * 0.17), Math.ceil(value * 4));
+      c.globalAlpha = shown(3 + layers);
+      c.fillStyle = k === 0 ? INK : MUTE;
+      c.font = font(22, k === 0 ? '600' : '');
+      c.textAlign = 'left';
+      c.fillText(WORDS[id], READ.x, y - 10);
+      c.fillStyle = '#1b2442';
+      c.fillRect(READ.x, y + 6, READ.bar, 12);
+      c.fillStyle = k === 0 ? AMBER : CYAN;
+      c.fillRect(READ.x, y + 6, READ.bar * value, 12);
+      c.fillStyle = INK;
+      c.font = font(17);
+      c.fillText(pct(value), READ.x + READ.bar + 8, y + 12);
     });
-    if (framed) {
-      c.strokeStyle = AMBER;
-      c.lineWidth = 2;
-      c.strokeRect(x - 3, y - 16, BAND + 5, 32);
+
+    // La boucle : le mot choisi repart de la sortie et vient s'ajouter au texte.
+    const since = time - this.flight.since;
+    if (since >= 0 && since < 0.7 && this.written().length) {
+      const t = since / 0.7, eased = t * t * (3 - 2 * t), u = 1 - eased;
+      const x0 = READ.x + 40, y0 = slotY(this.flight.slot), x1 = CHIP.x + CHIP.width / 2, y1 = row(last);
+      const x = u * u * u * x0 + 3 * u * u * eased * 1100 + 3 * u * eased * eased * 400 + eased * eased * eased * x1;
+      const y = u * u * u * y0 + 3 * u * u * eased * -30 + 3 * u * eased * eased * -30 + eased * eased * eased * y1;
+      c.globalAlpha = 1;
+      c.fillStyle = AMBER;
+      c.beginPath();
+      c.roundRect(x - 52, y - 17, 104, 34, 9);
+      c.fill();
+      c.fillStyle = '#1a1205';
+      c.font = font(18, '600');
+      c.textAlign = 'center';
+      c.fillText(WORDS[ids[last]], x, y + 1);
     }
+    c.globalAlpha = 1;
   }
 
   /** Un conduit entre deux points, avec des grains qui y circulent. phase < 0 : pas de grain. */
@@ -421,18 +560,19 @@ export class ChMachine extends Chapter implements AfterViewInit, OnDestroy {
     c.stroke();
     if (phase < 0) return;
     c.globalAlpha = Math.min(1, alpha * 1.6 + 0.15);
-    c.fillStyle = color === MUTE ? INK : '#fff';
+    c.fillStyle = '#fff';
     for (let g = 0; g < grains; g++) {
       const [x, y] = along(x0, y0, x1, y1, (phase + g / grains) % 1);
       c.beginPath();
-      c.arc(x, y, 1.6 + width * 0.22, 0, Math.PI * 2);
+      c.arc(x, y, 1.5 + width * 0.22, 0, Math.PI * 2);
       c.fill();
     }
   }
 
   ngOnDestroy(): void {
+    clearTimeout(this.timer);
     this.painter.stop();
-    this.trainer.stop();
+    this.replay.stop();
     this.zoomer.stop();
   }
 }

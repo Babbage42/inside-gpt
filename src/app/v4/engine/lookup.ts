@@ -146,25 +146,6 @@ export class LookupModel {
     return { probs: softmaxRow(logits, 0), attention: attention.map(rowsOf) };
   }
 
-  private get parameters(): Mat[] {
-    return [this.tok, this.pos, ...this.wq, ...this.wk, ...this.wv, this.out];
-  }
-
-  /** Copie de tous les réglages à cet instant de l'entraînement. */
-  snapshot(): Float32Array[] {
-    return this.parameters.map((m) => m.data.slice());
-  }
-
-  /** Remet le modèle dans l'état d'un instantané. */
-  load(snapshot: readonly Float32Array[]): void {
-    this.parameters.forEach((m, i) => m.data.set(snapshot[i]));
-  }
-
-  /** La table des boutons : une ligne de réglages par token du vocabulaire. */
-  embeddingTable(): number[][] {
-    return rowsOf(this.tok);
-  }
-
   /** Toutes les valeurs intermédiaires du calcul, pour ouvrir le capot. */
   inspect(puzzle: Puzzle, skip: number | readonly number[] = -1): Inspection {
     const { logits, attention, steps, stream, token } = this.forward(puzzle.ids, new Tape(), skip);

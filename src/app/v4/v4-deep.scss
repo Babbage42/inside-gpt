@@ -90,9 +90,21 @@
   .time { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; input { width: 100%; accent-color: var(--amber); } }
   .curves.short { height: 60px; .cursor { stroke: #fff; stroke-width: 1.5; vector-effect: non-scaling-stroke; } }
   .finale button { margin-top: 28px; }
+  .prompt-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px;
+    input { font: inherit; font-size: 18px; color: var(--ink); background: #0d1326; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; min-width: 0; &:focus { outline: 2px solid var(--amber); outline-offset: 1px; } } }
+  .context { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; min-height: 34px; align-items: center;
+    span, button { padding: 3px 10px; border-radius: 8px; background: var(--raise); border: 1px solid var(--line); font-size: 15px; color: var(--ink); }
+    .new { background: rgba(255, 180, 84, .15); border-color: var(--amber); color: var(--amber); animation: v4-in .3s ease both; } em { color: var(--mute); } }
+  .hint.warn { color: var(--bad); }
+  .chips.presets { margin: 0; }
+  details.vocab { summary { cursor: pointer; color: var(--cyan); font-size: 14px; } .context { margin-top: 10px; } }
+  .skills-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px;
+    li { display: grid; grid-template-columns: 1fr 90px 48px; gap: 10px; align-items: center; font-size: 14.5px; } strong { text-align: right; font-variant-numeric: tabular-nums; color: var(--amber); } }
+  .skill-track { height: 8px; border-radius: 4px; background: #0d1326; overflow: hidden; i { display: block; height: 100%; background: var(--amber); transition: width .3s; } }
+  code { background: #0d1326; padding: 2px 6px; border-radius: 6px; font-size: .9em; }
 
   @media (max-width: 860px) {
-    .console, .time { grid-template-columns: 1fr; }
+    .console, .time, .prompt-row { grid-template-columns: 1fr; }
     .capot-toggle { padding: 14px; gap: 10px; } .capot-title strong { font-size: 18px; } .capot-body { padding: 0 12px 4px; }
     .chain { grid-template-columns: 1fr; } .op::after { content: '↓'; }
     .keys { grid-template-columns: repeat(4, 1fr); } table.trace td:nth-child(4) { display: none; }

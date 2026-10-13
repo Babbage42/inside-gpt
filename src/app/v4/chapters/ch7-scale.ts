@@ -27,6 +27,7 @@ interface Model {
 
 const MODELS: readonly Model[] = [
   { name: 'Ton modèle du chapitre 6', parameters: 4464, layers: 2, context: 8, span: '1 h 14' },
+  { name: 'La machine du chapitre 9', parameters: 63312, layers: 3, context: 24, span: '17 h 35' },
   { name: 'GPT-1 · 2018', parameters: 117e6, layers: 12, context: 512, span: '3,7 ans' },
   { name: 'GPT-2 · 2019', parameters: 1.5e9, layers: 48, context: 1024, span: '48 ans' },
   { name: 'GPT-3 · 2020', parameters: 175e9, layers: 96, context: 2048, span: '5 500 ans' },
