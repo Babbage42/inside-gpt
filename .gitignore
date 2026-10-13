@@ -38,6 +38,9 @@ testem.log
 /typings
 __screenshots__/
 
+# Ancienne archive locale du projet, hors dépôt
+/Archive.zip
+
 # System files
 .DS_Store
 Thumbs.db

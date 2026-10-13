@@ -1,6 +1,6 @@
 <div class="v4">
   <header class="topbar">
-    <a class="brand" href="/v4"><span>∇</span> GradientLab</a>
+    <a class="brand" href="./"><span>Inside</span> GPT</a>
     <nav aria-label="Chapitres">
       @for (name of chapters; track name) {
         <button type="button" [class.on]="chapter() === $index" [class.past]="$index < chapter()" [attr.aria-current]="chapter() === $index ? 'step' : null" (click)="go($index)"><small>{{ $index + 1 }}</small><span>{{ name }}</span></button>

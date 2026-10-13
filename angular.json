@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "llm-lab": {
+    "inside-gpt": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -21,6 +21,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "outputPath": "dist/site",
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
@@ -65,10 +66,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "llm-lab:build:production"
+              "buildTarget": "inside-gpt:build:production"
             },
             "development": {
-              "buildTarget": "llm-lab:build:development"
+              "buildTarget": "inside-gpt:build:development"
             }
           },
           "defaultConfiguration": "development"

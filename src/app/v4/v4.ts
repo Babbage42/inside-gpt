@@ -10,7 +10,7 @@ import { ChInside } from './chapters/ch8-inside';
 import { ChBuild } from './chapters/ch9-build';
 import { ChMachine } from './chapters/ch10-machine';
 
-const STORAGE_KEY = 'gradient-lab-v4';
+const STORAGE_KEY = 'inside-gpt';
 const CHAPTERS = ['Le pari', 'Compter', 'La carte', 'La pente', 'Le neurone', 'Le regard', 'L’échelle', 'L’intérieur', 'L’assemblage', 'La machine'];
 
 @Component({
@@ -27,7 +27,7 @@ export class V4Root {
 
   constructor() {
     document.body.classList.add('v4-body');
-    document.title = 'GradientLab — Comprendre les LLM';
+    document.title = 'Inside GPT · Comprendre les LLM, d’une multiplication à GPT';
   }
 
   go(index: number): void {
