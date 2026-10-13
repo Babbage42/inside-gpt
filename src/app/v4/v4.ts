@@ -9,13 +9,15 @@ import { ChScale } from './chapters/ch7-scale';
 import { ChInside } from './chapters/ch8-inside';
 import { ChBuild } from './chapters/ch9-build';
 import { ChMachine } from './chapters/ch10-machine';
+import { CHAPTERS } from './chapters';
+import { Faq } from './faq/faq';
+import { ENTRIES } from './faq/faq-data';
 
 const STORAGE_KEY = 'inside-gpt';
-const CHAPTERS = ['Le pari', 'Compter', 'La carte', 'La pente', 'Le neurone', 'Le regard', 'L’échelle', 'L’intérieur', 'L’assemblage', 'La machine'];
 
 @Component({
   selector: 'app-root',
-  imports: [ChGame, ChCount, ChMap, ChDescent, ChNeuron, ChAttention, ChScale, ChInside, ChBuild, ChMachine],
+  imports: [ChGame, ChCount, ChMap, ChDescent, ChNeuron, ChAttention, ChScale, ChInside, ChBuild, ChMachine, Faq],
   templateUrl: './v4.html',
   styleUrls: ['./v4.scss', './v4-deep.scss'],
   encapsulation: ViewEncapsulation.None,
@@ -24,13 +26,31 @@ export class V4Root {
   readonly chapters = CHAPTERS;
   readonly chapter = signal(this.restore());
   readonly next = computed(() => CHAPTERS[this.chapter() + 1]);
+  /** La page affichée : le cours, ou les questions fréquentes (éventuellement celles d'un seul chapitre). */
+  readonly asking = signal(globalThis.location?.hash.startsWith('#faq') ?? false);
+  readonly askedAbout = signal<number | null>(null);
+  readonly questionsHere = computed(() => ENTRIES.filter((entry) => entry.chapter === this.chapter()).length);
 
   constructor() {
+    // Un lien vers une question précise ouvre les questions fréquentes, même depuis un chapitre.
+    window.addEventListener('hashchange', () => {
+      if (location.hash.startsWith('#faq')) this.asking.set(true);
+    });
     document.body.classList.add('v4-body');
     document.title = 'Inside GPT · Comprendre les LLM, d’une multiplication à GPT';
   }
 
+  /** Ouvre les questions fréquentes ; about limite la liste à celles d'un chapitre. */
+  ask(about: number | null = null): void {
+    this.askedAbout.set(about);
+    this.asking.set(true);
+    history.replaceState(null, '', '#faq');
+    window.scrollTo({ top: 0 });
+  }
+
   go(index: number): void {
+    this.asking.set(false);
+    history.replaceState(null, '', location.pathname + location.search);
     this.chapter.set(Math.max(0, Math.min(CHAPTERS.length - 1, index)));
     try {
       localStorage.setItem(STORAGE_KEY, String(this.chapter()));

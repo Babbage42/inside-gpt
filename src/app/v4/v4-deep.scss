@@ -132,6 +132,24 @@
       i { width: 12px; height: 12px; border-radius: 50%; &.head-0 { background: var(--cyan); } &.head-1 { background: var(--pink); } } .impact { color: var(--mute); font-size: 13.5px; font-variant-numeric: tabular-nums; } button { padding: 5px 12px; font-size: 13.5px; } } }
   .zoom-console { margin-top: 14px; .controls button { padding: 6px 12px; font-size: 13.5px; } .phase { font-size: 17px; min-height: 84px; } }
 
+  /* Questions fréquentes */
+  // Le bouton des questions reste hors de la liste des chapitres : il est toujours visible, même quand elle défile.
+  .topbar > .faq { display: flex; align-items: center; gap: 7px; flex: none; background: none; border-color: transparent; color: var(--mute); padding: 6px 8px; font-size: 14px; white-space: nowrap;
+    small { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 1px dashed var(--cyan); color: var(--cyan); font-size: 12px; }
+    &.on { color: var(--ink); small { background: var(--cyan); border-style: solid; color: #06202a; font-weight: 700; } } }
+  .pager { align-items: center; .link { font-size: 14.5px; } }
+  .faq-tools { gap: 16px; max-width: 900px; .chips { margin: 0; } }
+  .faq-search { width: 100%; font: inherit; font-size: 18px; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; &:focus { outline: 2px solid var(--amber); outline-offset: 1px; } &::placeholder { color: #66729a; } }
+  .faq-group { max-width: 900px; gap: 10px; padding-top: 18px; h2 { font-family: var(--serif); font-weight: 500; font-size: 27px; margin: 0 0 6px; color: var(--amber); } }
+  .faq-item { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; scroll-margin-top: 80px; transition: border-color .2s;
+    &[open] { border-color: #4a5a94; } 
+    summary { cursor: pointer; list-style: none; padding: 15px 46px 15px 20px; font-size: 18px; font-weight: 550; position: relative; &::-webkit-details-marker { display: none; }
+      &::after { content: '+'; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 24px; font-weight: 400; color: var(--amber); } &:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 14px; } }
+    &[open] summary::after { content: '−'; } }
+  .faq-body { padding: 0 20px 14px; p { margin: 0 0 12px; color: #d3d9ee; max-width: 70ch; } }
+  .faq-foot { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 4px 0 0 !important; font-size: 14.5px; }
+  .badge { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--violet); border: 1px solid var(--violet); border-radius: 999px; padding: 2px 10px; }
+
   code { background: #0d1326; padding: 2px 6px; border-radius: 6px; font-size: .9em; }
 
   @media (max-width: 860px) {

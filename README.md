@@ -29,6 +29,12 @@ Tout ce qui s'anime est un calcul réel exécuté dans le navigateur (`src/app/v
 
 Les tests (`engine.spec.ts`, `mini.spec.ts`, `grand-zoom.spec.ts`) vérifient les gradients par différences finies, la séparation entraînement/test, la généralisation du transformer, l'effet de l'ablation de chaque couche et le comportement des neurones avec et sans non-linéarité. Comme pour les versions précédentes, ils ne disent rien de l'efficacité pédagogique : elle reste à observer sur un vrai lecteur.
 
+## Les questions fréquentes
+
+Le bouton « FAQ » de la barre du cours ouvre une soixantaine de réponses courtes, rangées en six familles : les mots, le mécanisme, les idées reçues, les erreurs et limites, le passage du cours aux vrais modèles, et la façon de suivre le cours. On y cherche par mot, chaque réponse renvoie au chapitre qui la montre en action, et chaque chapitre propose en bas de page les questions qui le concernent. Une question a sa propre adresse (`#faq/…`), pour pouvoir la partager.
+
+Pour en ajouter une : un objet de plus dans `src/app/v4/faq/faq-data.ts` (famille, question, réponse, chapitre éventuel). Les réponses débattues portent la mention « question ouverte ».
+
 ## Lancer le cours en local
 
 ```bash
@@ -48,6 +54,7 @@ Le site public est reconstruit et publié sur GitHub Pages à chaque poussée su
 ## Où est quoi
 
 - `src/app/v4/chapters` : les dix chapitres, les sections « capot », la fresque et le grand zoom.
+- `src/app/v4/faq` : les questions fréquentes (`faq-data.ts` pour le contenu).
 - `src/app/v4/engine` : le moteur de calcul (autodifférentiation sur des matrices, modèles, mini-monde, mesures). Aucune bibliothèque d'apprentissage automatique.
 - `tools/train-mini.ts` : l'entraînement à l'avance des modèles des chapitres 9 et 10.
 - `public/models` : leurs réglages et leurs résultats.

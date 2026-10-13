@@ -3,12 +3,16 @@
     <a class="brand" href="./"><span>Inside</span> GPT</a>
     <nav aria-label="Chapitres">
       @for (name of chapters; track name) {
-        <button type="button" [class.on]="chapter() === $index" [class.past]="$index < chapter()" [attr.aria-current]="chapter() === $index ? 'step' : null" (click)="go($index)"><small>{{ $index + 1 }}</small><span>{{ name }}</span></button>
+        <button type="button" [class.on]="!asking() && chapter() === $index" [class.past]="$index < chapter()" [attr.aria-current]="!asking() && chapter() === $index ? 'step' : null" (click)="go($index)"><small>{{ $index + 1 }}</small><span>{{ name }}</span></button>
       }
     </nav>
+    <button type="button" class="faq" [class.on]="asking()" [attr.aria-current]="asking() ? 'page' : null" aria-label="Questions fréquentes" (click)="ask()"><small>?</small><span>FAQ</span></button>
   </header>
 
   <main>
+    @if (asking()) {
+      <v4-faq [chapter]="askedAbout()" (jump)="go($event)" (everyChapter)="askedAbout.set(null)" />
+    } @else {
     @switch (chapter()) {
       @case (0) { <v4-ch-game /> }
       @case (1) { <v4-ch-count /> }
@@ -21,11 +25,17 @@
       @case (8) { <v4-ch-build (jump)="go($event)" /> }
       @case (9) { <v4-ch-machine (jump)="go($event)" /> }
     }
+    }
   </main>
 
   <footer class="pager">
-    <button type="button" [disabled]="chapter() === 0" (click)="go(chapter() - 1)">← Chapitre précédent</button>
-    @if (next()) { <button type="button" class="primary" (click)="go(chapter() + 1)">Chapitre suivant · {{ next() }} →</button> }
-    @else { <button type="button" class="primary" (click)="go(0)">Revenir au début</button> }
+    @if (asking()) {
+      <button type="button" class="primary" (click)="go(chapter())">← Revenir au cours · chapitre {{ chapter() + 1 }}</button>
+    } @else {
+      <button type="button" [disabled]="chapter() === 0" (click)="go(chapter() - 1)">← Chapitre précédent</button>
+      @if (questionsHere()) { <button type="button" class="link" (click)="ask(chapter())">{{ questionsHere() === 1 ? '1 question fréquente' : questionsHere() + ' questions fréquentes' }} sur ce chapitre</button> }
+      @if (next()) { <button type="button" class="primary" (click)="go(chapter() + 1)">Chapitre suivant · {{ next() }} →</button> }
+      @else { <button type="button" class="primary" (click)="go(0)">Revenir au début</button> }
+    }
   </footer>
 </div>
