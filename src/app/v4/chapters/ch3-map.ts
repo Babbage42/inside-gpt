@@ -115,7 +115,8 @@ const SEEN = SENTENCES.map((s) => [s[s.length - 3], s[s.length - 2]] as const);
         <h2>Deux boutons par mot : une carte</h2>
         <p>Avec un seul bouton, on ne peut ranger les mots que le long d’une ligne. C’est trop étroit pour séparer des animaux, des personnes et des véhicules. On donne donc <strong>deux boutons</strong> à chaque mot, et la note devient : bouton 1 × bouton 1, plus bouton 2 × bouton 2.</p>
         <p>Deux nombres, ça se dessine : chaque mot devient un <strong>point sur une carte</strong>. La carte n’est rien d’autre que le dessin des boutons.</p>
-        <p>L’entraînement fait exactement ce que tu viens de faire, pour chaque phrase lue et pour tous les mots à la fois.</p>
+        <p class="aside">Précision : chaque mot a en fait deux paires de boutons. L’une sert quand il est lu, c’est elle qu’on dessine. L’autre sert quand il est candidat. Le capot, plus bas, montre comment elles se rencontrent.</p>
+        <p>L’entraînement fait ce que tu viens de faire, pour chaque phrase lue et pour tous les mots à la fois. Avec une différence : il ne suffit plus que « chasse » ait une bonne note, il lui faut une <strong>meilleure note que les autres candidats</strong>. Chaque correction fait donc monter le bon mot, et baisser un peu ceux qui lui prenaient sa place.</p>
         <p class="do">Lance-le et regarde les mots bouger. Personne ne leur dit où aller.</p>
         <div class="controls">
           <button type="button" class="primary" [disabled]="loop.running() || done()" (click)="train()">{{ loop.running() ? 'Entraînement…' : steps() ? 'Continuer' : 'Entraîner la machine' }}</button>
@@ -167,7 +168,7 @@ const SEEN = SENTENCES.map((s) => [s[s.length - 3], s[s.length - 2]] as const);
           <p>« Le lion chasse » n’est dans aucune phrase. Mais le lion a été corrigé par « dort » et « grogne », deux verbes qu’il partage avec le loup. Ces corrections l’ont tiré dans le même quartier de la carte. Sa note avec « chasse » y est donc bonne, sans que la machine l’ait jamais lue.</p>
           <p>Mesurons sur toutes les phrases que la machine n’a jamais lues : les <strong>plausibles</strong> (« le loup mange ») et les <strong>absurdes</strong> (« le bus grogne »).</p>
           <p>Le comptage leur donnait 0 % à toutes. La carte, elle, <strong>fait la différence</strong> : c’est le début de la généralisation.</p>
-          <p class="aside">Honnêteté : ce modèle est minuscule, et on a bridé la taille de ses réglages pour qu’il n’apprenne pas simplement ses {{ sentenceCount }} phrases par cœur. Les grands modèles généralisent parce qu’ils ont immensément plus de texte que de place pour le mémoriser.</p>
+          <p class="aside">Honnêteté : ce modèle est minuscule, et on a bridé la taille de ses réglages pour qu’il n’apprenne pas simplement ses {{ sentenceCount }} phrases par cœur. Les grands modèles, eux, ont immensément plus de texte que de place pour tout retenir : ils sont poussés à en extraire des régularités. Ils retiennent quand même mot pour mot une partie de ce qu’ils lisent, surtout les textes très répétés.</p>
         </div>
         <div class="stage">
           <p class="tiny">Après « lion »</p>

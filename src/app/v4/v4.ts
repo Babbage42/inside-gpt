@@ -33,6 +33,12 @@ export class V4Root implements AfterViewInit, OnDestroy {
   readonly asking = signal(globalThis.location?.hash.startsWith('#faq') ?? false);
   readonly askedAbout = signal<number | null>(null);
   readonly questionsHere = computed(() => ENTRIES.filter((entry) => entry.chapter === this.chapter()).length);
+  /**
+   * Les chapitres ouverts pendant la visite restent en vie, cachés : en revenant, on retrouve ses étapes et ses expériences.
+   * Sauf le dernier, dont la fresque se redessine sans arrêt : il ne vit que lorsqu'on le regarde.
+   */
+  private readonly visited = signal(new Set([this.chapter()]));
+  readonly alive = computed(() => [...this.visited()].filter((index) => index !== CHAPTERS.length - 1 || (index === this.chapter() && !this.asking())).sort((a, b) => a - b));
 
   constructor() {
     // Un lien vers une question précise ouvre les questions fréquentes, même depuis un chapitre.
@@ -94,6 +100,7 @@ export class V4Root implements AfterViewInit, OnDestroy {
     this.asking.set(false);
     history.replaceState(null, '', location.pathname + location.search);
     this.chapter.set(Math.max(0, Math.min(CHAPTERS.length - 1, index)));
+    this.visited.update((visited) => new Set(visited).add(this.chapter()));
     try {
       localStorage.setItem(STORAGE_KEY, String(this.chapter()));
     } catch {

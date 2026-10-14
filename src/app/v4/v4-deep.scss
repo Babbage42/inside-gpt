@@ -103,7 +103,7 @@
   .skill-track { height: 8px; border-radius: 4px; background: #0d1326; overflow: hidden; i { display: block; height: 100%; background: var(--amber); transition: width .3s; } }
   .center-text { text-align: center; }
   button.link { background: none; border: 0; padding: 0 2px; color: var(--cyan); font-size: inherit; text-decoration: underline; text-underline-offset: 3px; }
-  .skills-list li.unseen > span:first-child { color: #fff; } .skills-list em { color: var(--amber); font-style: normal; font-size: 12.5px; white-space: nowrap; }
+  .skills-list li.unseen > span:first-child { color: #fff; } .skills-list .tally { margin-left: .5em; color: var(--mute); font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; } .skills-list em { color: var(--amber); font-style: normal; font-size: 12.5px; white-space: nowrap; }
   .skills-list.wide-list li { grid-template-columns: 1fr 120px 48px 62px; }
   .delta { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--mute); text-align: right; &.up { color: var(--good); } &.down { color: var(--bad); } }
 

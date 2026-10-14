@@ -90,7 +90,7 @@ Elle ne tombe jamais à zéro : personne ne peut deviner à coup sûr le prochai
   {
     category: 'Les mots',
     question: 'Qu’est-ce que le gradient ? Et la rétropropagation ?',
-    answer: `Le <strong>gradient</strong> dit, pour chaque bouton, dans quel sens le tourner pour faire baisser la surprise, et avec quelle force : c’est une pente.
+    answer: `Le <strong>gradient</strong> dit, pour chaque bouton, dans quel sens le tourner pour faire <em>monter</em> la surprise, et avec quelle force : c’est une pente. L’entraînement tourne chaque bouton dans le sens opposé, d’où le nom de <strong>descente de gradient</strong>.
 
 La <strong>rétropropagation</strong> est la méthode qui calcule toutes ces pentes d’un coup, en remontant le calcul à l’envers. Sans elle, il faudrait essayer chaque bouton un par un.`,
     chapter: 3,
@@ -410,6 +410,18 @@ C’est une vraie erreur de vrai modèle, pas un bug. Les grands modèles évite
     answer: `Le plan est le même ; presque tout le reste change d’échelle. Le mini-GPT a 63 312 boutons et a lu des phrases sur douze animaux. Un grand modèle a des centaines de milliards de boutons et a lu une bonne part de ce qui est publié en ligne.
 
 Un assistant a en plus reçu un second entraînement pour dialoguer, et tourne dans une application qui lui ajoute des consignes et des outils.`,
+    chapter: 8,
+  },
+  {
+    category: 'Du cours aux vrais modèles',
+    question: 'Les modèles d’aujourd’hui sont-ils encore construits comme GPT-3 ?',
+    answer: `Sur le fond, oui : deviner le token suivant, des couches de regards et de neurones, une pente à descendre. Ce sont surtout des pièces qui ont changé.
+
+<strong>La place des mots</strong> n’est plus forcément ajoutée à la bande : beaucoup de modèles font tourner la question et l’étiquette d’un angle qui dépend de la position (RoPE). Le regard perçoit alors directement l’écart entre deux mots.
+
+<strong>Le mélange d’experts</strong> : chaque couche a plusieurs blocs de neurones, et un aiguillage n’en active que quelques-uns par token.
+
+S’y ajoutent des regards qui partagent leurs étiquettes et leurs contenus pour économiser la mémoire, une remise à l’échelle simplifiée, et une fenêtre passée de 2 048 tokens à souvent plus de 100 000.`,
     chapter: 8,
   },
   {

@@ -11,6 +11,10 @@ export const SKILLS = [
 ] as const;
 
 const EXAMS = { fil: exam('fil'), question: exam('question'), accord: exam('accord') };
+const SENTENCES = 150;
+
+/** Nombre de cas derrière chaque mesure, pour lire « 89 % » comme « 16 sur 18 ». */
+export const TRIALS: Record<string, number> = { vérité: SENTENCES, fil: EXAMS.fil.length, question: EXAMS.question.length, accord: EXAMS.accord.length };
 
 /** Part des épreuves réussies, en complétant chaque fois avec le mot le mieux noté. */
 export function grade(model: MiniGpt, cases: readonly Case[], cut: Cut = {}): number {
@@ -28,7 +32,7 @@ export function grade(model: MiniGpt, cases: readonly Case[], cut: Cut = {}): nu
 }
 
 /** Laisse la machine écrire librement, en tirant chaque mot selon ses probabilités, et compte les phrases vraies. */
-export function truthful(model: MiniGpt, count = 150, cut: Cut = {}): number {
+export function truthful(model: MiniGpt, count = SENTENCES, cut: Cut = {}): number {
   const dice = new Rng(4242);
   let right = 0;
   for (let n = 0; n < count; n++) {
@@ -45,7 +49,7 @@ export function truthful(model: MiniGpt, count = 150, cut: Cut = {}): number {
 }
 
 /** Les quatre mesures. sentences = 0 : on saute l'écriture libre, la plus longue à mesurer. */
-export function measure(model: MiniGpt, cut: Cut = {}, sentences = 150): Record<string, number> {
+export function measure(model: MiniGpt, cut: Cut = {}, sentences = SENTENCES): Record<string, number> {
   const answers = { fil: grade(model, EXAMS.fil, cut), question: grade(model, EXAMS.question, cut), accord: grade(model, EXAMS.accord, cut) };
   return sentences ? { vérité: truthful(model, sentences, cut), ...answers } : answers;
 }

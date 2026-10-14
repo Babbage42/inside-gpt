@@ -12,19 +12,22 @@
   <main>
     @if (asking()) {
       <v4-faq [chapter]="askedAbout()" (jump)="go($event)" (everyChapter)="askedAbout.set(null)" />
-    } @else {
-    @switch (chapter()) {
-      @case (0) { <v4-ch-game /> }
-      @case (1) { <v4-ch-count /> }
-      @case (2) { <v4-ch-map /> }
-      @case (3) { <v4-ch-descent /> }
-      @case (4) { <v4-ch-neuron /> }
-      @case (5) { <v4-ch-attention /> }
-      @case (6) { <v4-ch-scale /> }
-      @case (7) { <v4-ch-inside (jump)="go($event)" /> }
-      @case (8) { <v4-ch-build (jump)="go($event)" /> }
-      @case (9) { <v4-ch-machine (jump)="go($event)" /> }
     }
+    @for (index of alive(); track index) {
+      <div [hidden]="asking() || index !== chapter()">
+        @switch (index) {
+          @case (0) { <v4-ch-game /> }
+          @case (1) { <v4-ch-count /> }
+          @case (2) { <v4-ch-map /> }
+          @case (3) { <v4-ch-descent /> }
+          @case (4) { <v4-ch-neuron /> }
+          @case (5) { <v4-ch-attention /> }
+          @case (6) { <v4-ch-scale /> }
+          @case (7) { <v4-ch-inside (jump)="go($event)" /> }
+          @case (8) { <v4-ch-build (jump)="go($event)" /> }
+          @case (9) { <v4-ch-machine (jump)="go($event)" /> }
+        }
+      </div>
     }
   </main>
 

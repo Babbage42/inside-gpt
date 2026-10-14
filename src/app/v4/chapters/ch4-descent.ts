@@ -41,7 +41,7 @@ const GRID = 110;
         @if (step() >= 2) {
           <h2 id="descent-machine">La machine ne voit pas le paysage</h2>
           <p>Calculer tout le relief serait bien trop long. Elle connaît seulement <strong>la pente sous ses pieds</strong> : la flèche. C’est la réponse, pour les deux boutons du lion à la fois, à la question « quel sens fait baisser la surprise ? ». Sa méthode tient en une ligne : faire un petit pas dans ce sens, puis recommencer.</p>
-          <p>Cette pente s’appelle le <strong>gradient</strong>, et la méthode, la <strong>descente de gradient</strong>.</p>
+          <p>Cette pente s’appelle le <strong>gradient</strong>. Par convention, il indique le sens où la surprise <em>monte</em> : la flèche dessinée va à l’opposé. D’où le nom de la méthode, la <strong>descente de gradient</strong>.</p>
           <label class="slider">Taille du pas : <strong>{{ paceLabel() }}</strong>
             <input type="range" min="0.2" max="8" step="0.1" [value]="pace()" (input)="pace.set(+$any($event.target).value)" />
           </label>

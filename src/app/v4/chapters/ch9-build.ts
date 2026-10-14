@@ -1,6 +1,6 @@
 import { Component, computed, output, signal } from '@angular/core';
 import { Chapter, big, num, pct } from '../shared';
-import { LADDER, SKILLS, UNSCALED } from '../engine/mini-exam';
+import { LADDER, SKILLS, TRIALS, UNSCALED } from '../engine/mini-exam';
 import { MiniConfig, MiniGpt } from '../engine/mini-gpt';
 import { ANIMALS, CONTEXT, WORDS, decode, encode, isTrue, tokenize, trainingText } from '../engine/mini-world';
 import { Rng } from '../engine/tensor';
@@ -46,7 +46,7 @@ const STEPS: readonly Step[] = [
     index: 5,
     what: 'La pièce du chapitre 6. Chaque mot pose une question, la compare à l’étiquette des mots précédents, et recopie le contenu des plus ressemblants. Ici : un seul regard, une seule couche.',
     gain: 'C’est le grand saut. Elle peut enfin aller chercher l’animal quelques mots plus haut : phrases vraies, questions, tout décolle d’un coup.',
-    limit: 'Elle se trompe quand deux phrases se suivent. Après « le lion vit dans la savane », à « que mange le cerf ? », elle répond « de la viande ». Rien ne lui dit dans quel ordre sont les mots : pour elle, le texte est un sac de mots, et elle confond le lion et le cerf.',
+    limit: 'Elle se trompe encore parfois quand deux phrases se suivent. Après « le lion vit dans la savane », à « que mange le cerf ? », elle répond « de la viande ». Rien ne lui dit dans quel ordre sont les mots : pour elle, le texte est un sac de mots, et elle confond le lion et le cerf.',
   },
   {
     name: 'La place des mots',
@@ -72,7 +72,7 @@ const STEPS: readonly Step[] = [
     chapter: 'Chapitre 7',
     index: 6,
     what: 'Au lieu d’un regard, deux en parallèle, chacun avec ses propres questions et étiquettes : ils peuvent chercher deux choses différentes en même temps. On partage simplement les 48 nombres en deux, sans ajouter un seul bouton.',
-    gain: 'Les questions jamais posées progressent enfin.',
+    gain: 'Ici, deux questions jamais posées de plus réussies : trop peu pour conclure sur un monde aussi petit. Dans les grands modèles, des dizaines de regards par couche se partagent le travail.',
     limit: 'Avec une seule couche, chaque mot ne consulte les autres qu’une fois. Il ne peut pas profiter de ce qu’un autre mot vient d’apprendre.',
   },
   {
@@ -81,7 +81,7 @@ const STEPS: readonly Step[] = [
     chapter: 'Chapitre 7',
     index: 6,
     what: 'On empile trois fois le bloc « regards puis neurones ». Chaque couche travaille sur des bandes déjà enrichies par la précédente : des regards sur le résultat d’autres regards.',
-    gain: 'Les meilleures mesures de toute la construction. Elle est la seule à répondre « elle nage » à « que fait la baleine ? » : une question jamais posée, qui demande à la fois le bon pronom et le bon verbe.',
+    gain: 'Ses phrases libres sont presque toutes vraies, et elle est la seule à répondre « elle nage » à « que fait la baleine ? » : une question jamais posée, qui demande à la fois le bon pronom et le bon verbe.',
     limit: 'Il reste des erreurs, que tu verras au chapitre suivant. Pour les corriger, il faudrait plus de texte et plus de boutons : c’est le chemin qui mène aux grands modèles.',
   },
 ];
@@ -171,7 +171,7 @@ const PROBES = ['le dauphin vit dans la', 'où vit le zèbre ?', 'le lion vit da
             <ul class="skills-list wide-list">
               @for (skill of skills; track skill.key) {
                 <li [class.unseen]="skill.unseen">
-                  <span>{{ skill.label }}@if (skill.unseen) { <em> · jamais vu</em> }</span>
+                  <span>{{ skill.label }}@if (skill.unseen) { <em> · jamais vu</em> } <small class="tally">{{ tally(skill.key) }}</small></span>
                   <span class="skill-track"><i [style.width.%]="current().scores[skill.key] * 100"></i></span>
                   <strong>{{ pct(current().scores[skill.key]) }}</strong>
                   <span class="delta" [class.up]="delta(skill.key) > 0.005" [class.down]="delta(skill.key) < -0.005">{{ rung() ? signed(delta(skill.key)) : '' }}</span>
@@ -179,6 +179,7 @@ const PROBES = ['le dauphin vit dans la', 'où vit le zèbre ?', 'le lion vit da
               }
             </ul>
             <p class="hint">Surprise moyenne sur les textes : {{ num(current().loss) }}@if (rung()) { (elle était de {{ num(built()[rung() - 1].loss) }}) }. Plus elle est basse, mieux la machine devine.</p>
+            <p class="hint">Les épreuves sont petites, et chaque machine n’a été entraînée qu’une fois : un écart d’une ou deux réussites ne veut rien dire. Seules les grandes marches comptent.</p>
 
             <p class="tiny spaced">Les mêmes quatre phrases à chaque étape</p>
             <ul class="probes">
@@ -319,6 +320,11 @@ export class ChBuild extends Chapter {
     return piece === 'place' ? config.positions !== false : piece === 'regard' ? config.layers > 0 : config.layers > 0 && config.hidden > 0;
   }
 
+  /** La mesure en nombre de cas réussis : « 16/18 » dit mieux que « 89 % » sur quoi elle repose. */
+  tally(key: string): string {
+    return `${Math.round(this.current().scores[key] * TRIALS[key])}/${TRIALS[key]}`;
+  }
+
   delta(key: string): number {
     return this.rung() ? this.current().scores[key] - this.built()[this.rung() - 1].scores[key] : 0;
   }
@@ -334,11 +340,12 @@ export class ChBuild extends Chapter {
 
   /** Une phrase qui dit ce que la mesure montre, sans l'embellir. */
   verdict(bare: Built): string {
-    const full = this.full(), gaps = SKILLS.map((s) => ({ label: s.label.toLowerCase(), gap: full.scores[s.key] - bare.scores[s.key], with: full.scores[s.key], without: bare.scores[s.key] }));
+    // L'écart se compte en réussites : deux de plus ou de moins, sur des épreuves aussi petites, ne prouvent rien.
+    const full = this.full(), gaps = SKILLS.map((s) => ({ label: s.label.toLowerCase(), gap: Math.round((full.scores[s.key] - bare.scores[s.key]) * TRIALS[s.key]), with: full.scores[s.key], without: bare.scores[s.key], of: TRIALS[s.key] }));
     const widest = gaps.reduce((a, b) => (Math.abs(b.gap) > Math.abs(a.gap) ? b : a));
-    if (Math.abs(widest.gap) < 0.03) return 'À cette taille, on ne voit aucune différence : avec trois couches seulement, les nombres n’ont pas le temps d’enfler.';
-    const others = gaps.filter((g) => g !== widest).every((g) => Math.abs(g.gap) < 0.03);
-    const detail = `« ${widest.label} » : ${pct(widest.with)} avec, ${pct(widest.without)} sans`;
+    if (Math.abs(widest.gap) <= 2) return 'À cette taille, aucune différence nette : sur chaque épreuve, au plus deux réussites d’écart. Avec trois couches seulement, les nombres n’ont pas le temps d’enfler.';
+    const others = gaps.filter((g) => g !== widest).every((g) => Math.abs(g.gap) <= 2);
+    const detail = `« ${widest.label} » : ${Math.round(widest.with * widest.of)}/${widest.of} avec, ${Math.round(widest.without * widest.of)}/${widest.of} sans`;
     return others ? `Presque rien ne change, sauf sur une mesure. ${detail}.` : `Plusieurs mesures bougent. Le plus grand écart : ${detail}.`;
   }
 }
