@@ -84,6 +84,10 @@ body.v4-body { background: #0b1020; }
     p { margin: 0 0 12px; font-size: 18px; &:last-child { margin: 0; } } h2 { font-family: var(--serif); font-weight: 500; font-size: 34px; margin: 0 0 14px; color: var(--amber); }
     .aside { font-size: 15.5px; color: #c0c8e2; border-top: 1px solid #36447a; padding-top: 14px; margin-top: 16px; } }
   .takeaway { border-left: 4px solid var(--amber); }
+  /* Encadré « Dans ChatGPT » : ce que la pièce du chapitre explique d'un comportement qu'on observe en s'en servant. */
+  .everyday { max-width: 800px; margin: 0 auto; padding: 20px 26px; border: 1px solid #2c5566; border-left: 4px solid var(--cyan); border-radius: 14px; background: rgba(90, 209, 230, .06);
+    .tiny { color: var(--cyan); margin: 0 0 6px; } h3 { margin: 0 0 8px; font-size: 19px; font-weight: 650; color: #fff; } p:last-child { margin: 0; font-size: 16.5px; color: #d3d9ee; } }
+  .moment.solo:has(> .everyday) + .moment.solo { padding-top: 0; border-top: 0; }
 
   .bars { display: grid; gap: 7px; }
   .bar-row { display: grid; grid-template-columns: 76px 1fr auto; gap: 10px; align-items: center; font-size: 14px; font-variant-numeric: tabular-nums;

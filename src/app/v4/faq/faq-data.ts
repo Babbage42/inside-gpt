@@ -252,9 +252,10 @@ Ensuite en écrivant : chaque mot produit redevient une entrée, donc il peut po
   {
     category: 'Le mécanisme',
     question: 'Comment une machine à deviner devient-elle un assistant qui répond ?',
-    answer: `En lui présentant la conversation comme un texte à continuer : « Utilisateur : … Assistant : ». Le modèle écrit la suite la plus plausible, c’est-à-dire une réponse.
+    answer: `Par deux entraînements de plus. D’abord des <strong>exercices corrigés</strong> : des dialogues, mis à plat en un seul texte avec des marques (« utilisateur », « assistant », « fin »), où l’on ne note que les répliques de l’assistant. Il apprend la façon de répondre ; le savoir, lui, vient du premier entraînement.
 
-On l’entraîne ensuite une seconde fois, sur des dialogues et avec des évaluations humaines, pour qu’il préfère les réponses utiles et refuse certaines demandes. Enfin, l’application ajoute des consignes au début du texte, que tu ne vois pas.`,
+Puis des <strong>exercices notés</strong> : il essaie, une note juge ses essais, et l’on rend les réussites plus probables. Le chapitre 11 fait les trois étapes pour de vrai.`,
+    chapter: 10,
   },
 
   // ── Idées reçues ──
@@ -346,6 +347,15 @@ Quand un modèle écrit « je pense » ou « je ressens », il écrit d’abord 
     open: true,
   },
 
+  {
+    category: 'Idées reçues',
+    question: '« Quand il dit “je”, il parle de lui »',
+    answer: `Il écrit la suite la plus plausible. S’il répond « je suis un assistant », c’est que ses exercices corrigés contenaient cette réplique, ou que l’application la lui rappelle au début de chaque conversation.
+
+Le mini-assistant du chapitre 11 répond « je suis un assistant » pour exactement cette raison : la réplique figure dans ses dialogues d’entraînement. Ce n’est pas un souvenir de soi.`,
+    chapter: 10,
+  },
+
   // ── Erreurs et limites ──
   {
     category: 'Erreurs et limites',
@@ -409,7 +419,7 @@ C’est une vraie erreur de vrai modèle, pas un bug. Les grands modèles évite
     question: 'Quelle différence entre le mini-GPT du cours et un assistant comme ChatGPT ?',
     answer: `Le plan est le même ; presque tout le reste change d’échelle. Le mini-GPT a 63 312 boutons et a lu des phrases sur douze animaux. Un grand modèle a des centaines de milliards de boutons et a lu une bonne part de ce qui est publié en ligne.
 
-Un assistant a en plus reçu un second entraînement pour dialoguer, et tourne dans une application qui lui ajoute des consignes et des outils.`,
+Un assistant a en plus reçu des exercices corrigés et des exercices notés (chapitre 11), et tourne dans une application qui lui ajoute des consignes et des outils.`,
     chapter: 8,
   },
   {
@@ -427,7 +437,7 @@ S’y ajoutent des regards qui partagent leurs étiquettes et leurs contenus pou
   {
     category: 'Du cours aux vrais modèles',
     question: 'Qu’est-ce que le cours simplifie ?',
-    answer: `Quatre choses surtout. Les tokens sont des mots entiers, pas des morceaux. Les cartes sont en deux dimensions, pour être dessinées, au lieu de milliers. Les modèles sont minuscules, et leurs mondes aussi. Et le cours ne montre que le premier entraînement (deviner la suite), pas celui qui fait d’un modèle un assistant.
+    answer: `Quatre choses surtout. Les tokens sont des mots entiers, pas des morceaux. Les cartes sont en deux dimensions, pour être dessinées, au lieu de milliers. Les modèles sont minuscules, et leurs mondes aussi. Et au chapitre 11, les dialogues et les notes sont produits automatiquement, alors que ceux des vrais assistants sont écrits ou jugés par des personnes.
 
 Aucune de ces simplifications ne change le mécanisme.`,
   },
@@ -436,7 +446,23 @@ Aucune de ces simplifications ne change le mécanisme.`,
     question: 'Les animations sont-elles de vrais calculs ?',
     answer: `Oui. Tout ce qui bouge à l’écran est calculé dans ton navigateur par de vrais petits modèles, avec leurs vrais nombres. Rien n’est scénarisé : c’est pour cela que certains résultats sont imparfaits, et que le cours le dit.
 
-Seuls les modèles des chapitres 9 et 10 sont entraînés à l’avance, parce que cela demande plusieurs minutes.`,
+Seuls les modèles des chapitres 9, 10 et 11 sont entraînés à l’avance, parce que cela demande plusieurs minutes.`,
+  },
+  {
+    category: 'Du cours aux vrais modèles',
+    question: 'Qu’est-ce qu’un modèle de base ?',
+    answer: `Le modèle tel qu’il sort du premier entraînement, avant les dialogues. Il a lu des montagnes de textes et sait beaucoup de choses, mais il ne répond pas : il continue. Pose-lui une question, il risque d’écrire la question suivante d’un quiz, ou la suite d’un forum.
+
+Le chapitre 11 en montre un, en miniature, avant d’en faire un assistant.`,
+    chapter: 10,
+  },
+  {
+    category: 'Du cours aux vrais modèles',
+    question: 'Qu’est-ce que le RLHF ?',
+    answer: `L’apprentissage par renforcement à partir de retours humains. Des personnes comparent des réponses du modèle ; on entraîne un <strong>juge</strong> à prédire leurs préférences ; puis on note le modèle avec ce juge, et on rend ses réponses bien notées plus probables.
+
+C’est la méthode des exercices notés quand aucun correcteur exact n’existe. Sa faiblesse : un juge imparfait peut être trompé, si l’on optimise trop longtemps.`,
+    chapter: 10,
   },
   {
     category: 'Du cours aux vrais modèles',
@@ -444,7 +470,7 @@ Seuls les modèles des chapitres 9 et 10 sont entraînés à l’avance, parce q
     answer: `Un entraînement supplémentaire, plus court, sur des textes choisis : des dialogues pour en faire un assistant, des documents juridiques pour le spécialiser en droit.
 
 Le mécanisme est exactement celui du premier entraînement. On part simplement de boutons déjà réglés, au lieu de partir du hasard.`,
-    chapter: 3,
+    chapter: 10,
   },
   {
     category: 'Du cours aux vrais modèles',

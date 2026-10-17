@@ -188,6 +188,13 @@ const SEEN = SENTENCES.map((s) => [s[s.length - 3], s[s.length - 2]] as const);
         <ng-template><v4-capot-readout [model]="model" [tick]="steps()" /></ng-template>
       </v4-capot>
       <section class="moment solo">
+        <aside class="everyday">
+          <p class="tiny">Dans ChatGPT</p>
+          <h3>Pourquoi invente-t-il avec autant d’aplomb ?</h3>
+          <p>Pour la même raison que la carte devine « le lion chasse » sans l’avoir lu : il écrit ce qui est <strong>plausible</strong> d’après ses régularités. Plausible et vrai coïncident souvent, pas toujours. Une biographie inventée sort de la même mécanique qu’une bonne déduction : rien, dans le calcul, ne marque la différence.</p>
+        </aside>
+      </section>
+      <section class="moment solo">
         <div class="takeaway">
           <p class="tiny">À retenir</p>
           <p>Ces boutons, les spécialistes les appellent des <strong>embeddings</strong>. Personne ne les écrit : ils sont tirés au hasard, puis l’entraînement les tourne. Ici, deux par mot. Dans un grand modèle, des milliers : assez de place pour que s’y déposent le sens, le ton, la grammaire, le sujet…</p>

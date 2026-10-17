@@ -192,6 +192,13 @@ export class Fiche {
         <ng-template><v4-capot-arc [model]="model" [puzzle]="custom()" [tick]="steps()" /></ng-template>
       </v4-capot>
       <section class="moment solo">
+        <aside class="everyday">
+          <p class="tiny">Dans ChatGPT</p>
+          <h3>Comment peut-il lire ton document sans l’avoir appris ?</h3>
+          <p>Exactement comme ici : on ne touche à aucun bouton, on change seulement la fiche. Tes pièces jointes, les résultats d’une recherche sur le web sont collés dans son texte, et ses regards y puisent. Ce qui est dans ses boutons s’est appris une fois pour toutes ; ce qui est dans son texte se lit, le temps d’une réponse.</p>
+        </aside>
+      </section>
+      <section class="moment solo">
         <div class="takeaway">
           <p class="tiny">À retenir</p>
           <p>Tu viens d’assister à l’essentiel. On n’a donné au modèle <strong>ni règle ni méthode</strong> : seulement un objectif (deviner la suite), la capacité de regarder en arrière, et une pente à descendre. Il en est sorti un <strong>algorithme</strong>, qui fonctionne sur des cas jamais vus.</p>

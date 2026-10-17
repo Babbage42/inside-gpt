@@ -38,20 +38,20 @@ export const NEVER_ASKED = [1, 4, 7];
 /** Pluriels jamais lus : « les girafes vivent… », « les singes mangent… », « les chouettes volent », etc. */
 export const NEVER_PLURAL: readonly (readonly [number, Topic])[] = [[2, 'habitat'], [3, 'food'], [6, 'habitat'], [9, 'food'], [11, 'move'], [8, 'move']];
 
-type Topic = 'habitat' | 'food' | 'move';
-const TOPICS: readonly Topic[] = ['habitat', 'food', 'move'];
+export type Topic = 'habitat' | 'food' | 'move';
+export const TOPICS: readonly Topic[] = ['habitat', 'food', 'move'];
 const unreadPlural = (animal: number, topic: Topic) => NEVER_PLURAL.some(([a, t]) => a === animal && t === topic);
 
 // ── Les phrases ──
 
 type Words = string[];
-const subject = (a: Animal, plural: boolean): Words => (plural ? ['les', a.plural] : [a.feminine ? 'la' : 'le', a.name]);
+export const subject = (a: Animal, plural: boolean): Words => (plural ? ['les', a.plural] : [a.feminine ? 'la' : 'le', a.name]);
 const pronoun = (a: Animal, plural: boolean) => (a.feminine ? 'elle' : 'il') + (plural ? 's' : '');
-const verb = (a: Animal, topic: Topic, plural: boolean) => (topic === 'habitat' ? (plural ? 'vivent' : 'vit') : topic === 'food' ? (plural ? 'mangent' : 'mange') : plural ? MOVES[a.move] : a.move);
+export const verb = (a: Animal, topic: Topic, plural: boolean) => (topic === 'habitat' ? (plural ? 'vivent' : 'vit') : topic === 'food' ? (plural ? 'mangent' : 'mange') : plural ? MOVES[a.move] : a.move);
 const rest = (a: Animal, topic: Topic): Words => (topic === 'habitat' ? ['dans', 'la', a.habitat] : topic === 'food' ? [...a.food] : []);
 
 /** « le lion vit dans la savane . » */
-const states = (a: Animal, topic: Topic, plural: boolean): Words => [...subject(a, plural), verb(a, topic, plural), ...rest(a, topic), '.'];
+export const states = (a: Animal, topic: Topic, plural: boolean): Words => [...subject(a, plural), verb(a, topic, plural), ...rest(a, topic), '.'];
 /** « où vit le lion ? » */
 const asks = (a: Animal, topic: Topic, plural: boolean): Words =>
   topic === 'move' ? ['que', plural ? 'font' : 'fait', ...subject(a, plural), '?'] : [topic === 'habitat' ? 'où' : 'que', verb(a, topic, plural), ...subject(a, plural), '?'];

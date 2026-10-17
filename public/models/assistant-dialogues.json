@@ -1,0 +1,53 @@
+{
+ "config": {
+  "vocab": 92,
+  "context": 32,
+  "width": 48,
+  "layers": 3,
+  "heads": 2,
+  "hidden": 96
+ },
+ "seed": 1,
+ "parameters": 66096,
+ "steps": 500,
+ "batch": 16,
+ "lr": 0.0007,
+ "lessons": {
+  "plural": 0.02,
+  "unknown": false
+ },
+ "report": [
+  {
+   "step": 0,
+   "loss": null,
+   "scores": {
+    "taught": 0,
+    "taughtPlural": 0,
+    "known": 0,
+    "knownPlural": 0,
+    "strangersShown": 0,
+    "strangers": 0,
+    "who": 0,
+    "refus": 0,
+    "tirage": 0,
+    "tirageInconnu": 0
+   }
+  },
+  {
+   "step": 500,
+   "loss": 0.4011455540468111,
+   "scores": {
+    "taught": 1,
+    "taughtPlural": 0.9259259259259259,
+    "known": 1,
+    "knownPlural": 0.8888888888888888,
+    "strangersShown": 0,
+    "strangers": 0,
+    "who": 1,
+    "refus": 0,
+    "tirage": 0.46781609195402296,
+    "tirageInconnu": 0.35
+   }
+  }
+ ]
+}

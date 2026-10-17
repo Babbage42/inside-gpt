@@ -44,3 +44,7 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Étape intermédiaire de la contre-épreuve du chapitre 11 : seule sa suite est publiée.
+/public/models/assistant-sans-pluriel.bin
+/public/models/assistant-sans-pluriel.json

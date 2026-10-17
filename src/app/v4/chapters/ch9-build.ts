@@ -240,6 +240,13 @@ const PROBES = ['le dauphin vit dans la', 'où vit le zèbre ?', 'le lion vit da
         </div>
       </section>
       <section class="moment solo">
+        <aside class="everyday">
+          <p class="tiny">Dans ChatGPT</p>
+          <h3>Pourquoi ses connaissances s’arrêtent-elles à une date ?</h3>
+          <p>Comme le mini-GPT ne connaît que ses douze animaux, un grand modèle ne sait que ce qu’il a lu avant la fin de son entraînement : c’est figé dans ses boutons. Ce qui s’est passé ensuite lui est inconnu, sauf si une recherche le colle dans son texte.</p>
+        </aside>
+      </section>
+      <section class="moment solo">
         <div class="takeaway">
           <p class="tiny">À retenir</p>
           <p>Un GPT n’est pas une invention d’un seul bloc. C’est une <strong>pile de pièces simples</strong>, chacune ajoutée pour lever une limite précise : voir plus loin que le dernier mot, connaître l’ordre, retravailler ce qu’on a recueilli, chercher plusieurs choses à la fois, recommencer sur un résultat enrichi.</p>

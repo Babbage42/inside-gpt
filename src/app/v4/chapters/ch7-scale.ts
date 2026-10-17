@@ -118,6 +118,13 @@ const DRAFT = ['4 places à 12 € : 4 × 12 = 48 €.', 'Avec le bon : 48 − 1
         </div>
       </section>
       <section class="moment solo">
+        <aside class="everyday">
+          <p class="tiny">Dans ChatGPT</p>
+          <h3>Pourquoi résout-il un problème difficile, puis se trompe-t-il sur 9,11 et 9,9 ?</h3>
+          <p>Il ne voit pas des nombres, mais des morceaux de texte : « 9 », « . », « 11 ». Une piste avancée : dans beaucoup de textes, 9.11 vient après 9.9, comme dans des versions de logiciels ou des numéros de chapitres. Sa compétence n’a pas la forme de la nôtre : elle est <strong>en dents de scie</strong>, brillante ici, fautive juste à côté.</p>
+        </aside>
+      </section>
+      <section class="moment solo">
         <div class="takeaway">
           <p class="tiny">À retenir</p>
           <p>Un LLM, c’est : des positions pour les mots, des regards entre eux, un pari sur la suite, le tout réglé par descente de pente, puis répété à une échelle vertigineuse.</p>

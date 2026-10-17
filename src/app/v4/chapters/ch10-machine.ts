@@ -146,6 +146,14 @@ const ROLE_PROMPTS = ANIMALS.flatMap((a) => {
         <p class="aside wide">Cette machine a été entraînée à l’avance : {{ big(lastStep()) }} pas de {{ meta()!.batch }} textes, soit {{ duration() }} sur un ordinateur portable, avec le moteur de ce cours. Les instantanés de cet entraînement sont rejoués ici ; tout ce qui circule à l’écran est calculé en direct. Elle ne sait que ce qu’elle a retenu de ses lectures : lire une scène nouvelle, comme le modèle du chapitre 6, demande un entraînement qu’elle n’a pas reçu.</p>
       </section>
 
+      <section class="moment solo">
+        <aside class="everyday">
+          <p class="tiny">Dans ChatGPT</p>
+          <h3>Pourquoi les modèles « qui raisonnent » écrivent-ils avant de répondre ?</h3>
+          <p>Pour écrire un mot, cette machine fait un passage complet : environ {{ big(perWord()) }} multiplications, ni plus ni moins, que la question soit facile ou difficile. Pour GPT-3, environ 175 milliards. Un calcul difficile exigé dès le premier mot doit tenir dans un seul passage. Écrire des étapes, c’est s’offrir d’autres passages, chacun relisant ce qui est déjà écrit.</p>
+        </aside>
+      </section>
+
       <section class="moment stack" id="machine-zoom">
         <div class="prose">
           <h2>Le grand zoom : d’une multiplication à GPT-3</h2>
@@ -187,6 +195,8 @@ export class ChMachine extends Chapter implements AfterViewInit, OnDestroy {
   readonly lastStep = computed(() => this.meta()!.report[this.meta()!.report.length - 1].step);
   readonly finalScores = computed(() => this.meta()!.report[this.meta()!.report.length - 1].scores);
   readonly layers = computed(() => Array.from({ length: this.meta()!.config.layers }, (_, l) => l));
+  /** Le calcul d'un passage, ramené à un mot, pour un texte d'une douzaine de mots. */
+  readonly perWord = computed(() => (this.trained() ? Math.round(this.trained()!.multiplications(12) / 12) : 0));
   readonly duration = computed(() => {
     const seconds = this.meta()!.seconds;
     return seconds < 100 ? `environ ${Math.round(seconds / 10) * 10} secondes` : `environ ${Math.round(seconds / 60)} minutes`;

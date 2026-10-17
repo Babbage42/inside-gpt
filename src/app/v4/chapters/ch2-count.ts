@@ -109,6 +109,13 @@ interface Written {
         </div>
       </section>
       <section class="moment solo">
+        <aside class="everyday">
+          <p class="tiny">Dans ChatGPT</p>
+          <h3>Pourquoi la même question donne-t-elle deux réponses différentes ?</h3>
+          <p>Parce qu’il tire au sort, exactement comme ici. À chaque mot, ChatGPT obtient des probabilités et en tire un. Deux tirages, deux textes. Le réglage appelé « température » décide à quel point il ose les mots moins probables.</p>
+        </aside>
+      </section>
+      <section class="moment solo">
         <div class="takeaway">
           <p class="tiny">À retenir</p>
           <p>Compter ne suffira jamais : presque tout ce qu’on demandera à la machine sera <strong>inédit</strong>. Il lui faut un moyen de bien deviner dans des situations qu’elle n’a jamais vues. Autrement dit, il lui faut une notion de <strong>ressemblance</strong>.</p>

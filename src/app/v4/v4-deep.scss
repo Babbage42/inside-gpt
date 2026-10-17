@@ -132,6 +132,26 @@
       i { width: 12px; height: 12px; border-radius: 50%; &.head-0 { background: var(--cyan); } &.head-1 { background: var(--pink); } } .impact { color: var(--mute); font-size: 13.5px; font-variant-numeric: tabular-nums; } button { padding: 5px 12px; font-size: 13.5px; } } }
   .zoom-console { margin-top: 14px; .controls button { padding: 6px 12px; font-size: 13.5px; } .phase { font-size: 17px; min-height: 84px; } }
 
+  /* 11 · L'assistant */
+  .manual { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px;
+    li { display: grid; gap: 3px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: #10172e; color: var(--mute); transition: all .35s;
+      small { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; } strong { color: #c9d1ea; font-size: 17px; font-weight: 650; } span { font-size: 14.5px; }
+      &.done { border-color: #3f6f86; strong { color: var(--cyan); } }
+      &.on { border-color: var(--amber); background: rgba(255, 180, 84, .08); strong { color: var(--amber); } span { color: #d3d9ee; } } } }
+  .page { margin: 0 0 8px; padding: 10px 12px; border-radius: 10px; background: #0d1326; font-size: 14.5px; line-height: 1.55; color: #c9d1ea; }
+  .talk { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 10px;
+    > span { padding: 3px 7px; border-radius: 6px; border: 1px solid var(--line); font-size: 14px; color: var(--mute); }
+    > span.learn { color: #1a1205; background: var(--amber); border-color: var(--amber); font-weight: 600; }
+    > span.user, .user { color: var(--cyan); border-color: #2c5566; font-weight: 650; }
+    > span.bot, > span.end { color: var(--pink); border-color: #6b3653; font-weight: 650; }
+    > span.end.learn { background: var(--pink); color: #1f0b16; }
+    &.inline { display: inline; margin: 0; .user, .bot { font-weight: 650; } .bot { color: var(--pink); } } }
+  .mark { padding: 1px 6px; border-radius: 6px; border: 1px solid var(--line); font-weight: 650; font-size: .9em; white-space: nowrap;
+    &.user { color: var(--cyan); } &.bot, &.end { color: var(--pink); } }
+  table.answers { td, th { text-align: left; font-size: 14.5px; } td.bad { color: #ff8a8a; } td.good { color: var(--good); font-weight: 600; } }
+  .tries { margin-bottom: 14px; li { grid-template-columns: 1fr 22px; } li > span { font-variant-numeric: normal; } li i { font-style: normal; font-weight: 700; } }
+  .spark.tall { height: 90px; polyline.second { stroke: var(--cyan); } }
+
   /* Questions fréquentes */
   // Le bouton des questions reste hors de la liste des chapitres : il est toujours visible, même quand elle défile.
   .topbar > .faq { display: flex; align-items: center; gap: 7px; flex: none; background: none; border-color: transparent; color: var(--mute); padding: 6px 8px; font-size: 14px; white-space: nowrap;

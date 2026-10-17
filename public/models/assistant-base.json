@@ -1,0 +1,32 @@
+{
+ "config": {
+  "vocab": 92,
+  "context": 32,
+  "width": 48,
+  "layers": 3,
+  "heads": 2,
+  "hidden": 96
+ },
+ "seed": 1,
+ "parameters": 66096,
+ "steps": 6000,
+ "batch": 16,
+ "report": [
+  {
+   "step": 6000,
+   "loss": 0.682148260833644,
+   "scores": {
+    "taught": 0,
+    "taughtPlural": 0,
+    "known": 0,
+    "knownPlural": 0,
+    "strangersShown": 0,
+    "strangers": 0,
+    "who": 0,
+    "refus": 0,
+    "tirage": 0,
+    "tirageInconnu": 0
+   }
+  }
+ ]
+}

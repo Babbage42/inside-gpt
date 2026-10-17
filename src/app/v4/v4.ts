@@ -9,15 +9,18 @@ import { ChScale } from './chapters/ch7-scale';
 import { ChInside } from './chapters/ch8-inside';
 import { ChBuild } from './chapters/ch9-build';
 import { ChMachine } from './chapters/ch10-machine';
+import { ChAssistant } from './chapters/ch11-assistant';
 import { CHAPTERS } from './chapters';
 import { Faq } from './faq/faq';
 import { ENTRIES } from './faq/faq-data';
 
 const STORAGE_KEY = 'inside-gpt';
+/** Le chapitre de la grande machine, dont la fresque s'anime en continu. */
+const FRESCO = CHAPTERS.indexOf('La machine');
 
 @Component({
   selector: 'app-root',
-  imports: [ChGame, ChCount, ChMap, ChDescent, ChNeuron, ChAttention, ChScale, ChInside, ChBuild, ChMachine, Faq],
+  imports: [ChGame, ChCount, ChMap, ChDescent, ChNeuron, ChAttention, ChScale, ChInside, ChBuild, ChMachine, ChAssistant, Faq],
   templateUrl: './v4.html',
   styleUrls: ['./v4.scss', './v4-deep.scss'],
   encapsulation: ViewEncapsulation.None,
@@ -35,10 +38,10 @@ export class V4Root implements AfterViewInit, OnDestroy {
   readonly questionsHere = computed(() => ENTRIES.filter((entry) => entry.chapter === this.chapter()).length);
   /**
    * Les chapitres ouverts pendant la visite restent en vie, cachés : en revenant, on retrouve ses étapes et ses expériences.
-   * Sauf le dernier, dont la fresque se redessine sans arrêt : il ne vit que lorsqu'on le regarde.
+   * Sauf celui de la fresque, qui se redessine sans arrêt : il ne vit que lorsqu'on le regarde.
    */
   private readonly visited = signal(new Set([this.chapter()]));
-  readonly alive = computed(() => [...this.visited()].filter((index) => index !== CHAPTERS.length - 1 || (index === this.chapter() && !this.asking())).sort((a, b) => a - b));
+  readonly alive = computed(() => [...this.visited()].filter((index) => index !== FRESCO || (index === this.chapter() && !this.asking())).sort((a, b) => a - b));
 
   constructor() {
     // Un lien vers une question précise ouvre les questions fréquentes, même depuis un chapitre.

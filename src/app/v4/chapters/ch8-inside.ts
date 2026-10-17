@@ -73,6 +73,13 @@ import { Chapter } from '../shared';
     </section>
 
     <section class="moment solo">
+      <aside class="everyday">
+        <p class="tiny">Dans ChatGPT</p>
+        <h3>Quand il explique comment il a calculé, dit-il vrai ?</h3>
+        <p>Pas forcément. Des chercheurs ont observé un modèle additionner par deux chemins en parallèle : un ordre de grandeur approximatif, et le dernier chiffre exact. Interrogé, il décrivait pourtant la méthode de l’école, avec la retenue. Son explication est un texte plausible sur l’addition, pas une lecture de son propre calcul.</p>
+      </aside>
+    </section>
+    <section class="moment solo">
       <div class="takeaway">
         <p class="tiny">Pour finir</p>
         <p>Tu as vu chaque pièce séparément. Il reste à les <strong>assembler</strong> en un vrai petit modèle de langage, une pièce à la fois, puis à le regarder tourner d’un seul tenant.</p>

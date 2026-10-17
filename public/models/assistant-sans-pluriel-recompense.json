@@ -1,0 +1,82 @@
+{
+ "config": {
+  "vocab": 92,
+  "context": 32,
+  "width": 48,
+  "layers": 3,
+  "heads": 2,
+  "hidden": 96
+ },
+ "seed": 1,
+ "parameters": 66096,
+ "steps": 150,
+ "problems": 12,
+ "tries": 8,
+ "lr": 0.0003,
+ "report": [
+  {
+   "step": 0,
+   "loss": null,
+   "scores": {
+    "taught": 1,
+    "taughtPlural": 0,
+    "known": 1,
+    "knownPlural": 0,
+    "strangersShown": 1,
+    "strangers": 1,
+    "who": 1,
+    "refus": 0,
+    "tirage": 0.6160919540229886,
+    "tirageInconnu": 0.61
+   }
+  },
+  {
+   "step": 50,
+   "loss": null,
+   "scores": {
+    "taught": 1,
+    "taughtPlural": 0,
+    "known": 1,
+    "knownPlural": 0,
+    "strangersShown": 1,
+    "strangers": 1,
+    "who": 1,
+    "refus": 0,
+    "tirage": 0.6160919540229886,
+    "tirageInconnu": 0.6433333333333333
+   }
+  },
+  {
+   "step": 100,
+   "loss": null,
+   "scores": {
+    "taught": 1,
+    "taughtPlural": 0,
+    "known": 1,
+    "knownPlural": 0,
+    "strangersShown": 1,
+    "strangers": 1,
+    "who": 1,
+    "refus": 0,
+    "tirage": 0.6402298850574712,
+    "tirageInconnu": 0.6466666666666666
+   }
+  },
+  {
+   "step": 150,
+   "loss": null,
+   "scores": {
+    "taught": 1,
+    "taughtPlural": 0,
+    "known": 1,
+    "knownPlural": 0,
+    "strangersShown": 1,
+    "strangers": 1,
+    "who": 1,
+    "refus": 0,
+    "tirage": 0.6528735632183909,
+    "tirageInconnu": 0.6666666666666666
+   }
+  }
+ ]
+}

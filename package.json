@@ -7,6 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "train:assistant": "esbuild tools/train-assistant.ts --bundle --platform=node --format=esm --outfile=dist/train-assistant.mjs --log-level=error && node dist/train-assistant.mjs",
     "train:mini": "esbuild tools/train-mini.ts --bundle --platform=node --format=esm --outfile=dist/train-mini.mjs --log-level=error && node dist/train-mini.mjs"
   },
   "prettier": {

@@ -102,6 +102,13 @@ const GRID = 110;
         <ng-template><v4-capot-backprop [model]="model" /></ng-template>
       </v4-capot>
       <section class="moment solo">
+        <aside class="everyday">
+          <p class="tiny">Dans ChatGPT</p>
+          <h3>Pourquoi ne retient-il pas ce que tu lui apprends ?</h3>
+          <p>Ses boutons ne bougent que pendant l’entraînement, quand on descend la pente. Pendant une conversation, aucune pente n’est calculée : ses milliards de boutons restent figés. Ce que tu lui dis vit seulement dans le texte de la conversation, et disparaît avec elle.</p>
+        </aside>
+      </section>
+      <section class="moment solo">
         <div class="takeaway">
           <p class="tiny">À retenir</p>
           <p>Un réseau de neurones n’est pas programmé : il est <strong>réglé</strong>. On mesure son erreur, on calcule dans quel sens bouger chaque réglage pour la réduire, on fait un petit pas. Des milliards de fois.</p>

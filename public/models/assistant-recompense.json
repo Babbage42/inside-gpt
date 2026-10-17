@@ -1,0 +1,130 @@
+{
+ "config": {
+  "vocab": 92,
+  "context": 32,
+  "width": 48,
+  "layers": 3,
+  "heads": 2,
+  "hidden": 96
+ },
+ "seed": 1,
+ "parameters": 66096,
+ "steps": 300,
+ "problems": 12,
+ "tries": 8,
+ "lr": 0.0003,
+ "report": [
+  {
+   "step": 0,
+   "loss": null,
+   "scores": {
+    "taught": 1,
+    "taughtPlural": 0.6296296296296297,
+    "known": 1,
+    "knownPlural": 0.3333333333333333,
+    "strangersShown": 1,
+    "strangers": 1,
+    "who": 1,
+    "refus": 0,
+    "tirage": 0.7114942528735633,
+    "tirageInconnu": 0.66
+   }
+  },
+  {
+   "step": 50,
+   "loss": null,
+   "scores": {
+    "taught": 1,
+    "taughtPlural": 0.8888888888888888,
+    "known": 1,
+    "knownPlural": 0.8888888888888888,
+    "strangersShown": 1,
+    "strangers": 1,
+    "who": 1,
+    "refus": 0,
+    "tirage": 0.8057471264367816,
+    "tirageInconnu": 0.7366666666666667
+   }
+  },
+  {
+   "step": 100,
+   "loss": null,
+   "scores": {
+    "taught": 1,
+    "taughtPlural": 1,
+    "known": 1,
+    "knownPlural": 1,
+    "strangersShown": 1,
+    "strangers": 1,
+    "who": 1,
+    "refus": 0,
+    "tirage": 0.8758620689655172,
+    "tirageInconnu": 0.8
+   }
+  },
+  {
+   "step": 150,
+   "loss": null,
+   "scores": {
+    "taught": 1,
+    "taughtPlural": 1,
+    "known": 1,
+    "knownPlural": 1,
+    "strangersShown": 1,
+    "strangers": 1,
+    "who": 1,
+    "refus": 0,
+    "tirage": 0.9011494252873563,
+    "tirageInconnu": 0.78
+   }
+  },
+  {
+   "step": 200,
+   "loss": null,
+   "scores": {
+    "taught": 1,
+    "taughtPlural": 1,
+    "known": 1,
+    "knownPlural": 1,
+    "strangersShown": 1,
+    "strangers": 1,
+    "who": 1,
+    "refus": 0,
+    "tirage": 0.9310344827586207,
+    "tirageInconnu": 0.8333333333333334
+   }
+  },
+  {
+   "step": 250,
+   "loss": null,
+   "scores": {
+    "taught": 1,
+    "taughtPlural": 1,
+    "known": 1,
+    "knownPlural": 1,
+    "strangersShown": 1,
+    "strangers": 1,
+    "who": 1,
+    "refus": 0,
+    "tirage": 0.9275862068965517,
+    "tirageInconnu": 0.8133333333333334
+   }
+  },
+  {
+   "step": 300,
+   "loss": null,
+   "scores": {
+    "taught": 1,
+    "taughtPlural": 1,
+    "known": 1,
+    "knownPlural": 1,
+    "strangersShown": 1,
+    "strangers": 1,
+    "who": 1,
+    "refus": 0,
+    "tirage": 0.9367816091954023,
+    "tirageInconnu": 0.8233333333333334
+   }
+  }
+ ]
+}

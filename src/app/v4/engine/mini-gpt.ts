@@ -171,20 +171,30 @@ export class MiniGpt {
    * Surprise moyenne sur ces textes, quand on devine chaque mot à partir de ceux qui le précèdent.
    * Laisse dans chaque réglage sa pente, prête pour un pas de correction.
    */
-  measure(texts: readonly (readonly number[])[]): number {
+  /**
+   * Surprise moyenne sur des textes, en laissant les pentes dans les réglages.
+   * weights[t][i] pondère la devinette du mot i + 1 du texte t : 0 pour l'ignorer, négatif pour la décourager.
+   * Sans poids, chaque mot compte autant.
+   */
+  measure(texts: readonly (readonly number[])[], weights?: readonly (readonly number[])[]): number {
     const guesses = texts.reduce((sum, t) => sum + t.length - 1, 0);
-    let loss = 0;
-    for (const text of texts) {
+    let loss = 0, counted = 0;
+    texts.forEach((text, t) => {
       const tape = new Tape(), logits = this.forward(text.slice(0, -1), tape);
-      for (let i = 0; i + 1 < text.length; i++) loss += tape.crossEntropy(logits, i, text[i + 1], 1 / guesses).loss;
+      for (let i = 0; i + 1 < text.length; i++) {
+        const weight = weights ? weights[t][i] : 1 / guesses;
+        if (!weight) continue;
+        loss += tape.crossEntropy(logits, i, text[i + 1], weight).loss;
+        counted++;
+      }
       tape.backward();
-    }
-    return loss / guesses;
+    });
+    return loss / Math.max(counted, 1);
   }
 
   /** Un pas d'entraînement : mesurer, puis tourner chaque réglage un peu dans le bon sens. */
-  trainStep(texts: readonly (readonly number[])[]): number {
-    const loss = this.measure(texts);
+  trainStep(texts: readonly (readonly number[])[], weights?: readonly (readonly number[])[]): number {
+    const loss = this.measure(texts, weights);
     this.adam.step();
     this.steps++;
     return loss;
@@ -225,6 +235,23 @@ export class MiniGpt {
       let best = 0;
       for (let j = 1; j < scores.length; j++) if (scores[j] > scores[best]) best = j;
       text.push(best);
+    }
+    return text.slice(ids.length);
+  }
+
+  /** Complète en tirant chaque mot au sort selon ses probabilités, jusqu'au mot stop (inclus). */
+  sample(ids: readonly number[], count: number, draw: () => number, stop = -1, temperature = 1): number[] {
+    const text = [...ids];
+    for (let n = 0; n < count && text.length < this.config.context; n++) {
+      const scores = this.scores(text);
+      let max = -Infinity, sum = 0;
+      for (const s of scores) max = Math.max(max, s);
+      const odds = Array.from(scores, (s) => Math.exp((s - max) / temperature));
+      for (const o of odds) sum += o;
+      let roll = draw() * sum, id = 0;
+      while (id < odds.length - 1 && roll > odds[id]) roll -= odds[id++];
+      text.push(id);
+      if (id === stop) break;
     }
     return text.slice(ids.length);
   }
